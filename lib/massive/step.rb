@@ -73,7 +73,7 @@ module Massive
     def complete
       if completed_all_jobs? && !locked?(:complete)
         run_callbacks :complete do
-          update_attributes finished_at: Time.now, memory_consumption: current_memory_consumption
+          update_attributes finished_at: Time.now, failed_at: nil, memory_consumption: current_memory_consumption
         end
 
         process.enqueue_next if execute_next?

@@ -129,6 +129,11 @@ describe Massive::Job do
           job.reload.should be_failed
         end
 
+        it "sets the step as failed" do
+          expect { job.work }.to raise_error(error)
+          step.reload.should be_failed
+        end
+
         it "saves the last error" do
           expect { job.work }.to raise_error(error)
           job.reload.last_error.should eq(error.message)

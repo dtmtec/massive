@@ -74,6 +74,8 @@ module Massive
     def handle_errors(&block)
       block.call
     rescue StandardError, SignalException => e
+      step.failed_at = Time.now
+
       update_attributes(
         last_error: e.message,
         failed_at: Time.now,
