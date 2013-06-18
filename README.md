@@ -21,7 +21,7 @@ Or install it yourself as:
 Massive gives you a basic model structure to process data, either coming from a file or from some other source, like a database. It has three basic concepts:
 
 * __Process__: defines the set of steps and control their execution.
-* __Step__: a step of the processing, for example, when processing a CSV file you may want to gather some info of the file, them read the data from the file and import it to the database, and later perform some processing on that data. In this scenario you would create 3 steps, each step would split the processing into smaller jobs.
+* __Step__: a step of the process, for example, when processing a CSV file you may want to gather some info of the file, them read the data from the file and import it to the database, and later perform some processing on that data. In this scenario you would create 3 steps, each step would split the processing into smaller jobs.
 * __Job__: here lies the basic processing logic, iterating through each item from the data set reserved for it, and them process the item. It also updates the number of processed items, so you can poll the jobs about their progress.
 
 The main usage would consist in subclassing `Massive::Step` and `Massive::Job` to add the required logic for your processing.
