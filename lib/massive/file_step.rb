@@ -1,6 +1,6 @@
 module Massive
   class FileStep < Step
-    calculates_total_count_with { file.processor.total_count }
+    calculates_total_count_with { file.total_count }
 
     delegate :file, to: :process
   end

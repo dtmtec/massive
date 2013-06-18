@@ -10,13 +10,13 @@ describe Massive::FileStep do
 
   context "when it is started!" do
     let(:file) { process.file }
-    let(:calculated_total_count) { 1234 }
+    let(:total_count) { 1234 }
 
-    before { file.stub_chain(:processor, :total_count).and_return(calculated_total_count) }
+    before { file.total_count = total_count }
 
     it "calculates the total count, using the processor total count" do
       step.start!
-      step.total_count.should eq(calculated_total_count)
+      step.total_count.should eq(total_count)
     end
   end
 end
