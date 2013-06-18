@@ -1,5 +1,10 @@
 # Massive
 
+[![build status][1]][2]
+
+[1]: https://travis-ci.org/dtmtec/massive.png
+[2]: http://travis-ci.org/dtmtec/massive
+
 Massive gives you a basic infrastructure to parallelize processing of large files and/or data using Resque, Redis and MongoDB.
 
 ## Installation
