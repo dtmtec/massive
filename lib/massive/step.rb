@@ -43,6 +43,8 @@ module Massive
     end
 
     def self.inherited(child)
+      super
+
       child.job_class   self.job_class
       child.limit_ratio self.limit_ratio
     end

@@ -235,4 +235,13 @@ describe Massive::Job do
       end
     end
   end
+
+  context "on a subclass" do
+    subject(:job) { CustomJob.new }
+    before { step.jobs << job }
+
+    it "properly sets the _type" do
+      job._type.should be_present
+    end
+  end
 end

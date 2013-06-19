@@ -7,6 +7,8 @@ module Massive
       maximum_retries 10
 
       def self.inherited(base)
+        super
+
         base.retry_interval retry_interval
         base.maximum_retries maximum_retries
       end

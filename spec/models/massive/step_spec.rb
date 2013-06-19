@@ -447,4 +447,13 @@ describe Massive::Step do
       its(:processing_time) { should eq(total_elapsed_time) }
     end
   end
+
+  context "on a inherited step" do
+    subject(:step) { InheritedStep.new }
+    before { process.steps << step }
+
+    it "properly sets the _type" do
+      step._type.should be_present
+    end
+  end
 end
