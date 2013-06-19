@@ -5,6 +5,7 @@ gemspec
 
 group(:development) do
   gem 'debugger'
+  gem 'rake'
 end
 
 group(:test) do
