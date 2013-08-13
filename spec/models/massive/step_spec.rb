@@ -60,6 +60,11 @@ describe Massive::Step do
       step.reload.total_count.should be_present
     end
 
+    it "sends a :start notification" do
+      step.should_receive(:notify).with(:start)
+      step.start!
+    end
+
     context "when total_count is not defined" do
       it "updates it to zero" do
         step.start!
@@ -190,6 +195,11 @@ describe Massive::Step do
         step.should_not be_persisted
       end
 
+      it "does not send a :complete notification" do
+        step.should_not_receive(:notify).with(:complete)
+        step.complete
+      end
+
       context "when it should not execute next after completion" do
         it "does not enqueues next step of process" do
           process.should_not_receive(:enqueue_next)
@@ -236,6 +246,11 @@ describe Massive::Step do
           step.should_not be_persisted
         end
 
+        it "does not send a :complete notification" do
+          step.should_not_receive(:notify).with(:complete)
+          step.complete
+        end
+
         context "when it should not execute next after completion" do
           it "does not enqueues next step of process" do
             process.should_not_receive(:enqueue_next)
@@ -262,6 +277,11 @@ describe Massive::Step do
         it "updates the memory_consumption, persisting it" do
           step.complete
           step.reload.memory_consumption.should eq(current_memory_consumption)
+        end
+
+        it "sends a :complete notification" do
+          step.should_receive(:notify).with(:complete)
+          step.complete
         end
 
         context "when it should not execute next after completion" do

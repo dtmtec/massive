@@ -7,6 +7,7 @@ module Massive
     include Massive::MemoryConsumption
     include Massive::TimingSupport
     include Massive::Locking
+    include Massive::Notifications
 
     embedded_in :process, class_name: 'Massive::Process'
     embeds_many :jobs,    class_name: 'Massive::Job'
@@ -56,6 +57,11 @@ module Massive
       Resque.enqueue(self.class, process.id.to_s, id.to_s)
     end
 
+    def start!
+      super
+      notify(:start)
+    end
+
     def work
       start!
 
@@ -76,6 +82,7 @@ module Massive
       if completed_all_jobs? && !locked?(:complete)
         run_callbacks :complete do
           update_attributes finished_at: Time.now, failed_at: nil, memory_consumption: current_memory_consumption
+          notify(:complete)
         end
 
         process.enqueue_next if execute_next?

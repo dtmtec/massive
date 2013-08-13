@@ -118,69 +118,44 @@ describe Massive::Job do
         job.should_receive(:process_each).with(item, 2).once
         job.work
       end
+
+      it "sends a :progress notification" do
+        step.stub(:notify)
+        step.should_receive(:notify).with(:progress)
+        job.work
+      end
     end
 
     shared_examples_for "handles error" do
-      context "while starting" do
-        before { job.stub(:start!).and_raise(error) }
-
-        it "sets the job as failed, then re-raises the exception" do
-          expect { job.work }.to raise_error(error)
-          job.reload.should be_failed
-        end
-
-        it "sets the step as failed" do
-          expect { job.work }.to raise_error(error)
-          step.reload.should be_failed
-        end
-
-        it "saves the last error" do
-          expect { job.work }.to raise_error(error)
-          job.reload.last_error.should eq(error.message)
-        end
+      it "re-raises the exception" do
+        expect { job.work }.to raise_error(error)
       end
 
-      context "while running throught each item" do
-        before { job.stub(:each_item).and_raise(error) }
-
-        it "sets the job as failed, then re-raises the exception" do
-          expect { job.work }.to raise_error(error)
-          job.reload.should be_failed
+      it "sets the step as failed" do
+        begin
+          job.work
+        rescue StandardError, SignalException
         end
 
-        it "saves the last error" do
-          expect { job.work }.to raise_error(error)
-          job.reload.last_error.should eq(error.message)
-        end
+        step.reload.should be_failed
       end
 
-      context "while processing each item" do
-        include_context "job processing"
-
-        before { job.stub(:process_each).and_raise(error) }
-
-        it "sets the job as failed, then re-raises the exception" do
-          expect { job.work }.to raise_error(error)
-          job.reload.should be_failed
+      it "saves the last error" do
+        begin
+          job.work
+        rescue StandardError, SignalException
         end
 
-        it "saves the last error" do
-          expect { job.work }.to raise_error(error)
-          job.reload.last_error.should eq(error.message)
-        end
+        job.reload.last_error.should eq(error.message)
       end
 
-      context "while finishing" do
-        before { job.stub(:finish!).and_raise(error) }
+      it "sends a :failed notification" do
+        step.stub(:notify)
+        step.should_receive(:notify).with(:failed)
 
-        it "sets the job as failed, then re-raises the exception" do
-          expect { job.work }.to raise_error(error)
-          job.reload.should be_failed
-        end
-
-        it "saves the last error" do
-          expect { job.work }.to raise_error(error)
-          job.reload.last_error.should eq(error.message)
+        begin
+          job.work
+        rescue StandardError, SignalException
         end
       end
     end
@@ -188,12 +163,24 @@ describe Massive::Job do
     context "when an error occurs" do
       let(:error) { StandardError.new('some-error') }
 
-      it_should_behave_like "handles error"
+      context "while starting" do
+        before { job.stub(:start!).and_raise(error) }
+
+        it_should_behave_like "handles error"
+      end
+
+      context "while running through each item" do
+        before { job.stub(:each_item).and_raise(error) }
+
+        it_should_behave_like "handles error"
+      end
 
       context "while processing each item" do
         include_context "job processing"
 
         before { job.stub(:process_each).and_raise(error) }
+
+        it_should_behave_like "handles error"
 
         it "retries 10 times, with a 2 second interval" do
           Kernel.should_receive(:sleep).with(retry_interval).exactly(maximum_retries - 1).times
@@ -214,17 +201,35 @@ describe Massive::Job do
           end
         end
       end
+
+      context "while finishing" do
+        before { job.stub(:finish!).and_raise(error) }
+
+        it_should_behave_like "handles error"
+      end
     end
 
     context "when a system signal is sent" do
       let(:error) { SignalException.new('TERM') }
 
-      it_should_behave_like "handles error"
+      context "while starting" do
+        before { job.stub(:start!).and_raise(error) }
+
+        it_should_behave_like "handles error"
+      end
+
+      context "while running through each item" do
+        before { job.stub(:each_item).and_raise(error) }
+
+        it_should_behave_like "handles error"
+      end
 
       context "while processing each item" do
         include_context "job processing"
 
         before { job.stub(:process_each).and_raise(error) }
+
+        it_should_behave_like "handles error"
 
         it "does not retry the processing, raising error immediately" do
           Kernel.should_not_receive(:sleep)
@@ -232,6 +237,12 @@ describe Massive::Job do
           expect { job.work }.to raise_error(error)
           job.reload.retries.should be_zero
         end
+      end
+
+      context "while finishing" do
+        before { job.stub(:finish!).and_raise(error) }
+
+        it_should_behave_like "handles error"
       end
     end
   end

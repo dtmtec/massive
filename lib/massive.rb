@@ -15,8 +15,14 @@ module Massive
   autoload :FileProcess,       'massive/file_process'
   autoload :FileStep,          'massive/file_step'
   autoload :FileJob,           'massive/file_job'
+
+  autoload :Notifications,     'massive/notifications'
+  autoload :Notifiers,         'massive/notifiers'
+
+  autoload :StepSerializer,    'massive/step_serializer'
 end
 
 require "resque"
 require "mongoid"
+require "active_model_serializers"
 require "file_processor"

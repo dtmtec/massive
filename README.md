@@ -21,6 +21,10 @@ Or install it yourself as:
 
     $ gem install massive
 
+## Requirements
+
+If you want notifications using [Pusher][http://pusher.com], you'll need to add `pusher-gem` to your Gemfile. Also, if you'd like these notifications to be sent in less than one second intervals you'll need to use 2.6 version of Redis.
+
 ## Usage
 
 Massive gives you a basic model structure to process data, either coming from a file or from some other source, like a database. It has three basic concepts:

@@ -14,7 +14,7 @@ module Massive
     field :offset,      type: Integer, default: 0
     field :limit,       type: Integer, default: -1
 
-    delegate :process, to: :step
+    delegate :process, :notify, to: :step
 
     define_model_callbacks :work
 
@@ -41,6 +41,7 @@ module Massive
             retrying do
               process_each(item, index)
               increment_processed
+              notify(:progress)
             end
           end
         end
@@ -76,12 +77,15 @@ module Massive
     rescue StandardError, SignalException => e
       step.failed_at = Time.now
 
-      update_attributes(
+      assign_attributes(
         last_error: e.message,
         failed_at: Time.now,
         processed: 0,
         retries: retries
       )
+
+      step.save
+      notify(:failed)
 
       raise e
     end
