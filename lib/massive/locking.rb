@@ -1,10 +1,10 @@
 module Massive
   module Locking
-    def locked?(key)
+    def locked?(key, expire_in=60 * 1000)
       lock_key = lock_key_for(key)
 
-      !redis.setnx(lock_key, 1.minute.from_now).tap do |result|
-        redis.expire(lock_key, 1.minute) if result
+      !redis.setnx(lock_key, Time.now.to_i + (expire_in)/1000).tap do |result|
+        expire(lock_key, expire_in) if result
       end
     end
 
@@ -12,6 +12,12 @@ module Massive
 
     def lock_key_for(key)
       "#{self.class.name.underscore}:#{id}:#{key}"
+    end
+
+    def expire(lock_key, expire_in)
+      redis.pexpire(lock_key, expire_in)
+    rescue Redis::CommandError
+      redis.expire(lock_key, (expire_in/1000).to_i)
     end
 
     def redis
