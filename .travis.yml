@@ -4,3 +4,4 @@ rvm:
 services:
   - mongodb
   - redis-server
+bundler_args: --without development

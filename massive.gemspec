@@ -22,4 +22,6 @@ Gem::Specification.new do |gem|
   gem.add_dependency "active_model_serializers"
 
   gem.add_development_dependency "rspec"
+  gem.add_development_dependency "database_cleaner"
+  gem.add_development_dependency "rake"
 end
