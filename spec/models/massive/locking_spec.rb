@@ -1,3 +1,5 @@
+require "spec_helper"
+
 shared_examples_for Massive::Locking do
   let(:redis) { Resque.redis }
   let(:key)   { :some_key }
@@ -38,7 +40,7 @@ shared_examples_for Massive::Locking do
 
     context "when pexpire command is not supported" do
       let(:error) { Redis::CommandError.new('not supported') }
-      before { redis.stub(:pexire).and_raise(error) }
+      before { redis.stub(:pexpire).and_raise(error) }
 
       it "should set expiration using expire command, dividing expiration per 1000 and rounding" do
         redis.should_receive(:expire).with(lock_key, (1500/1000).to_i)
