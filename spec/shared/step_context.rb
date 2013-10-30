@@ -13,7 +13,7 @@ shared_context "frozen time" do
 end
 
 shared_context "job processing" do
-  let(:item) { mock(:item) }
+  let(:item) { double(:item) }
   let(:index) { 0 }
   let(:retry_interval)  { job.class.retry_interval }
   let(:maximum_retries) { job.class.maximum_retries }

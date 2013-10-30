@@ -17,7 +17,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   gem.add_dependency "resque"
-  gem.add_dependency "mongoid"
+  gem.add_dependency "mongoid", "~> 3.1.x"
   gem.add_dependency "file_processor"
   gem.add_dependency "active_model_serializers"
 

@@ -2,7 +2,7 @@ require "spec_helper"
 
 shared_examples_for Massive::MemoryConsumption do
   let(:memory) { 123456 }
-  let(:io) { mock(IO, gets: "    #{memory} ") }
+  let(:io) { double(IO, gets: "    #{memory} ") }
   before { IO.stub(:popen).with("ps -o rss= -p #{Process.pid}").and_yield(io) }
 
   its(:current_memory_consumption) { should eq(memory) }
