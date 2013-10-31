@@ -13,7 +13,7 @@ module Massive
       end
 
       def notify(message, data=nil, &block)
-        send_notification(message, data, &block) unless locked?(message)
+        send_notification(message, data, &block) unless locked?(message, expiration)
       end
 
       protected
