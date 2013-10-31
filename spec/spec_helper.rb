@@ -10,6 +10,11 @@ ENV['RACK_ENV'] ||= 'test'
 
 Bundler.require :default, ENV['RACK_ENV']
 
+begin
+  require 'debugger'
+rescue LoadError
+end
+
 root = File.expand_path('../..', __FILE__)
 
 Mongoid.load!(File.join(root, "spec/support/mongoid.yml"), :test)
