@@ -16,5 +16,20 @@ module Massive
     def enqueue_next
       steps.not_completed.first.try(:enqueue)
     end
+
+    def processed_percentage
+      steps.inject(0) do |result, step|
+        result += step.processed_percentage * step.weight
+      end / total_weight.to_f
+    end
+
+    def completed?
+      steps.not_completed.none?
+    end
+
+    private
+      def total_weight
+        steps.map(&:weight).sum
+      end
   end
 end
