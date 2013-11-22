@@ -79,4 +79,77 @@ describe Massive::Process do
       Massive::Process.find_job(process.id, step.id, job.id).should eq(job)
     end
   end
+
+  describe "#processed_percentage" do
+    let(:step_1)  { process.steps.build(weight: 9) }
+    let(:step_2)  { process.steps.build            }
+
+    context "when the process have not started" do
+      before do
+        step_1.stub(:processed_percentage).and_return(0)
+        step_2.stub(:processed_percentage).and_return(0)
+      end
+
+      its(:processed_percentage) { should eq 0 }
+    end
+
+    context "when the process have finished" do
+      before do
+        step_1.stub(:processed_percentage).and_return(1)
+        step_2.stub(:processed_percentage).and_return(1)
+      end
+
+      its(:processed_percentage) { should eq 1 }
+    end
+
+    context "when the file export step is finished" do
+      before { step_1.stub(:processed_percentage).and_return(1) }
+
+      context "and the file upload step is not finished" do
+        before { step_2.stub(:processed_percentage).and_return(0) }
+
+        its(:processed_percentage) { should eq 0.9 }
+      end
+    end
+
+    context "when the file export step is finished" do
+      before { step_1.stub(:processed_percentage).and_return(1) }
+
+      context "and the file upload step is finished" do
+        before { step_2.stub(:processed_percentage).and_return(1) }
+
+        its(:processed_percentage) { should eq 1 }
+      end
+    end
+
+    context "when the file export step is finished" do
+      before { step_1.stub(:processed_percentage).and_return(1) }
+
+      context "and the file upload step is half way to be finished" do
+        before { step_2.stub(:processed_percentage).and_return(0.5) }
+
+        its(:processed_percentage) { should eq 0.95 }
+      end
+    end
+  end
+
+  describe "#completed?" do
+    let!(:step_1)  { process.steps.build }
+    let!(:step_2)  { process.steps.build }
+
+    before { process.save }
+
+    context "when the steps are incompleted steps" do
+      its(:completed?) { should be_false }
+    end
+
+    context "when therere are no incompleted steps" do
+      before do
+        step_1.update_attributes(finished_at: Time.now, failed_at: nil)
+        step_2.update_attributes(finished_at: Time.now, failed_at: nil)
+      end
+
+      its(:completed?) { should be_true }
+    end
+  end
 end

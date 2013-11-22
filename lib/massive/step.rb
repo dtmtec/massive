@@ -12,11 +12,10 @@ module Massive
     embedded_in :process, class_name: 'Massive::Process'
     embeds_many :jobs,    class_name: 'Massive::Job'
 
-    field :total_count, type: Integer
-
+    field :total_count,  type: Integer
+    field :weight,       type: Integer, default: 1
+    field :job_class,    type: String,  default: -> { self.class.job_class }
     field :execute_next, type: Boolean, default: false
-
-    field :job_class, type: String, default: -> { self.class.job_class }
 
     define_model_callbacks :work
     define_model_callbacks :complete
