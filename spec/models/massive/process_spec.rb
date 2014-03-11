@@ -131,6 +131,13 @@ describe Massive::Process do
         its(:processed_percentage) { should eq 0.95 }
       end
     end
+
+    context "when the total weight of the steps is zero" do
+      let(:step_1)  { process.steps.build(weight: 0) }
+      let(:step_2)  { process.steps.build(weight: 0) }
+
+      its(:processed_percentage) { should eq 0 }
+    end
   end
 
   describe "#completed?" do

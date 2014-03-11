@@ -18,9 +18,7 @@ module Massive
     end
 
     def processed_percentage
-      steps.inject(0) do |result, step|
-        result += step.processed_percentage * step.weight
-      end / total_weight.to_f
+      total_weight > 0 ? total_steps_processed_percentage.to_f / total_weight : 0
     end
 
     def completed?
@@ -30,6 +28,12 @@ module Massive
     private
       def total_weight
         steps.map(&:weight).sum
+      end
+
+      def total_steps_processed_percentage
+        steps.inject(0) do |result, step|
+          result += step.processed_percentage * step.weight
+        end
       end
   end
 end
