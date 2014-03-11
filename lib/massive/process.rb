@@ -3,6 +3,8 @@ module Massive
     include Mongoid::Document
     include Mongoid::Timestamps
 
+    field :cancelled_at, type: Time
+
     embeds_many :steps, class_name: 'Massive::Step'
 
     def self.find_step(process_id, step_id)
@@ -24,6 +26,25 @@ module Massive
     def completed?
       steps.not_completed.none?
     end
+
+    def cancelled?
+      cancelled_at? || redis.exists(cancelled_key)
+    end
+
+    def cancel
+      self.cancelled_at = Time.now
+      redis.setex(cancelled_key, 1.day, true)
+      save
+    end
+
+    protected
+      def redis
+        Massive.redis
+      end
+
+      def cancelled_key
+        "#{self.class.name.underscore}:#{id}:cancelled"
+      end
 
     private
       def total_weight

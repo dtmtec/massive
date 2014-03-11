@@ -4,9 +4,6 @@ shared_examples_for Massive::Locking do
   let(:redis) { Resque.redis }
   let(:key)   { :some_key }
 
-  before { redis.flushdb }
-  after  { redis.flushdb }
-
   context "when there is a lock for the given key" do
     let(:lock_key) { subject.send(:lock_key_for, key) }
     before { redis.set(lock_key, 60) }

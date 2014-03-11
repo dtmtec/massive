@@ -3,17 +3,19 @@ module Massive
     extend ActiveSupport::Concern
 
     included do
-      field :started_at,  type: Time
-      field :finished_at, type: Time
-      field :failed_at,   type: Time
+      field :started_at,   type: Time
+      field :finished_at,  type: Time
+      field :failed_at,    type: Time
+      field :cancelled_at, type: Time
 
-      field :last_error,  type: String
-      field :retries,     type: Integer, default: 0
+      field :last_error,   type: String
+      field :retries,      type: Integer, default: 0
 
       scope :started,       ne(started_at: nil)
       scope :completed,     ne(finished_at: nil)
       scope :not_completed, where(finished_at: nil)
       scope :failed,        ne(failed_at: nil)
+      scope :cancelled,     ne(cancelled_at: nil)
     end
 
     def start!
@@ -39,6 +41,7 @@ module Massive
         started_at: Time.now,
         finished_at: nil,
         failed_at: nil,
+        cancelled_at: nil,
         retries: 0,
         last_error: nil
       }

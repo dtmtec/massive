@@ -7,6 +7,7 @@ module Massive
     include Massive::MemoryConsumption
     include Massive::TimingSupport
     include Massive::Retry
+    include Massive::Cancelling
 
     embedded_in :step, class_name: 'Massive::Step'
 
@@ -34,19 +35,23 @@ module Massive
 
     def work
       handle_errors do
-        start!
+        cancelling do
+          start!
 
-        run_callbacks :work do
-          each_item do |item, index|
-            retrying do
-              process_each(item, index)
-              increment_processed
-              notify(:progress)
+          run_callbacks :work do
+            each_item do |item, index|
+              retrying do
+                cancelling do
+                  process_each(item, index)
+                  increment_processed
+                  notify(:progress)
+                end
+              end
             end
           end
-        end
 
-        finish!
+          finish!
+        end
       end
     end
 
@@ -70,10 +75,19 @@ module Massive
       super.merge(processed: 0)
     end
 
+    def cancelled?
+      process.cancelled?
+    end
+
     private
 
     def handle_errors(&block)
       block.call
+    rescue Massive::Cancelled => e
+      assign_attributes(cancelled_at: Time.now)
+      step.update_attributes(cancelled_at: Time.now)
+
+      notify(:cancelled)
     rescue StandardError, SignalException => e
       step.failed_at = Time.now
 

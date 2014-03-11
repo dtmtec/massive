@@ -126,6 +126,67 @@ describe Massive::Job do
       end
     end
 
+    context "when it is cancelled" do
+      before { step.stub(:notify) }
+
+      context "before it is started" do
+        before { process.stub(:cancelled?).and_return(true) }
+
+        it "sends a cancelled notification" do
+          step.should_receive(:notify).with(:cancelled)
+          job.work
+        end
+
+        it "sets the step cancelled_at" do
+          job.work
+          step.reload.should be_cancelled_at
+        end
+
+        it "sets the job cancelled_at" do
+          job.work
+          job.reload.should be_cancelled_at
+        end
+      end
+
+      context "while it is processing" do
+        let(:item) { double(:item) }
+        let(:index) { 0 }
+
+        before do
+          job.stub(:each_item).and_yield(item, index)
+                              .and_yield(item, index + 1)
+                              .and_yield(item, index + 2)
+
+          job.stub(:process_each) do
+            process.stub(:cancelled?).and_return(true)
+          end
+
+          Kernel.stub(:sleep)
+        end
+
+        it "sends a cancelled notification" do
+          step.should_receive(:notify).with(:cancelled)
+          job.work
+        end
+
+        it "sets the step cancelled_at" do
+          job.work
+          step.reload.should be_cancelled_at
+        end
+
+        it "sets the job cancelled_at" do
+          job.work
+          job.reload.should be_cancelled_at
+        end
+
+        it "does not retry the processing" do
+          Kernel.should_not_receive(:sleep)
+          job.work
+          job.reload.retries.should be_zero
+        end
+      end
+    end
+
     shared_examples_for "handles error" do
       it "re-raises the exception" do
         expect { job.work }.to raise_error(error)

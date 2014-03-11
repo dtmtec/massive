@@ -224,9 +224,6 @@ describe Massive::Step do
 
       before { step.stub(:completed_all_jobs?).and_return(true) }
 
-      before { redis.flushdb }
-      after  { redis.flushdb }
-
       context "but there is a complete lock for this step" do
         before do
           redis.set(lock_key, 1.minute.from_now)

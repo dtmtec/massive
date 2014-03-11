@@ -21,7 +21,7 @@ module Massive
     end
 
     def redis
-      @redis ||= Resque.redis
+      @redis ||= Massive.redis
     end
   end
 end

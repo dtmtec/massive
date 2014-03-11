@@ -16,9 +16,6 @@ describe Massive::Notifiers::Pusher do
     let(:message) { :some_message }
     let(:data)    { { some: 'data' } }
 
-    before { redis.flushdb }
-    after  { redis.flushdb }
-
     context "when a notification for this message is not locked" do
       it "sends a notification" do
         client.should_receive(:trigger).with(id, message, data)

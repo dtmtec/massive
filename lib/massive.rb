@@ -6,6 +6,7 @@ module Massive
   autoload :Status,            'massive/status'
   autoload :Locking,           'massive/locking'
   autoload :Retry,             'massive/retry'
+  autoload :Cancelling,        'massive/cancelling'
 
   autoload :Process,           'massive/process'
   autoload :Step,              'massive/step'
@@ -21,6 +22,12 @@ module Massive
 
   autoload :ProcessSerializer, 'massive/process_serializer'
   autoload :StepSerializer,    'massive/step_serializer'
+
+  class Cancelled < StandardError; end
+
+  def self.redis
+    @redis ||= Resque.redis
+  end
 end
 
 require "resque"

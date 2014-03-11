@@ -36,4 +36,7 @@ RSpec.configure do |config|
   config.before do
     DatabaseCleaner.clean_with(:truncation)
   end
+
+  config.before { Massive.redis.flushdb }
+  config.after { Massive.redis.flushdb }
 end

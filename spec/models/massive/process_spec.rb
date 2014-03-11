@@ -159,4 +159,40 @@ describe Massive::Process do
       its(:completed?) { should be_true }
     end
   end
+
+  describe "#cancel" do
+    let!(:now) do
+      Time.now.tap do |now|
+        Time.stub(:now).and_return(now)
+      end
+    end
+
+    it "sets cancelled_at to the current time, persisting it" do
+      process.cancel
+      process.reload.cancelled_at.to_i.should eq(now.to_i)
+    end
+
+    it "sets a cancelled key in redis with the process id" do
+      process.cancel
+      Massive.redis.exists("#{process.class.name.underscore}:#{process.id}:cancelled").should be_true
+    end
+  end
+
+  describe "#canceled?" do
+    context "when it has a cancelled_at" do
+      before { process.cancelled_at = Time.now }
+
+      it { should be_cancelled }
+    end
+
+    context "when it doesn't have a cancelled_at" do
+      it { should_not be_cancelled }
+
+      context "but there is a cancelled key for this process in redis" do
+        before { Massive.redis.set("#{process.class.name.underscore}:#{process.id}:cancelled", true) }
+
+        it { should be_cancelled }
+      end
+    end
+  end
 end

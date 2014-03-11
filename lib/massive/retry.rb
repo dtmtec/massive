@@ -19,8 +19,9 @@ module Massive
 
       begin
         block.call
-      rescue SignalException => e
-        raise e # when the process is being terminated, there is no need to retry it
+      rescue Massive::Cancelled, SignalException
+        # re-raise cancelled and signal exceptions since they are not an actual error
+        raise
       rescue StandardError => e
         self.retries += 1
 
