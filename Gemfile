@@ -6,6 +6,7 @@ gem 'rake'
 
 group(:development) do
   gem 'debugger'
+  gem 'guard-rspec', require: false
 end
 
 group(:test) do
