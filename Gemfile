@@ -7,6 +7,7 @@ gem 'rake'
 group(:development) do
   gem 'debugger'
   gem 'guard-rspec', require: false
+  gem 'terminal-notifier-guard'
 end
 
 group(:test) do
