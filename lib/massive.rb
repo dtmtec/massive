@@ -19,6 +19,7 @@ module Massive
   autoload :Notifications,     'massive/notifications'
   autoload :Notifiers,         'massive/notifiers'
 
+  autoload :ProcessSerializer, 'massive/process_serializer'
   autoload :StepSerializer,    'massive/step_serializer'
 end
 
