@@ -28,6 +28,33 @@ module Massive
   def self.redis
     @redis ||= Resque.redis
   end
+
+  def self.fog_credentials
+    @fog_credentials
+  end
+
+  def self.fog_credentials=(values=nil)
+    @fog_credentials = values
+  end
+
+  def self.fog_authenticated_url_expiration
+    @fog_authenticated_url_expiration
+  end
+
+  def self.fog_authenticated_url_expiration=(value=nil)
+    @fog_authenticated_url_expiration = value
+  end
+
+  def self.fog_directory
+    @fog_directory
+  end
+
+  def self.fog_directory=(directory=nil)
+    @fog_directory = directory
+  end
+
+  self.fog_directory = 'massive'
+  self.fog_authenticated_url_expiration = 1 * 60 * 60
 end
 
 require "resque"

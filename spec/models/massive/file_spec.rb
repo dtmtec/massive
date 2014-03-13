@@ -33,6 +33,32 @@ describe Massive::File do
         file.processor.should eq(processor)
       end
     end
+
+    describe "when using Fog" do
+      let(:filename) { 'my-file.txt' }
+      let(:fog_connection) { double(Fog::Storage) }
+      let(:fog_directory) { double('Directory') }
+      let(:fog_file) { double('File') }
+      let(:authenticated_url) { 'http://my-auth.url.com' }
+
+      subject(:file)  { Massive::File.new(filename: filename, encoding: encoding, col_sep: col_sep) }
+
+      before do
+        Massive.fog_credentials = { provider: 'AWS', aws_access_key_id: 'some-key', aws_secret_access_key: 'some-secret' }
+        Massive.fog_authenticated_url_expiration = 1.hour
+        Massive.fog_directory = 'my-bucket'
+
+        Fog::Storage.stub(:new).with(Massive.fog_credentials).and_return(fog_connection)
+        fog_connection.stub_chain(:directories, :get).with(Massive.fog_directory).and_return(fog_directory)
+        fog_directory.stub_chain(:files, :get).with(filename).and_return(fog_file)
+        fog_file.stub(:url).with(Massive.fog_authenticated_url_expiration).and_return(authenticated_url)
+      end
+
+      it "creates a new instance of the CSV file processor, pointing its URL to the authenticated fog url" do
+        FileProcessor::CSV.should_receive(:new).with(authenticated_url, expected_options).and_return(processor)
+        file.processor.should eq(processor)
+      end
+    end
   end
 
   describe "#gather_info!" do

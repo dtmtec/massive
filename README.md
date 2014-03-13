@@ -156,7 +156,7 @@ With this structure you can easily import users from a CSV file:
     end
   end
 
-  process = Massive::FileProcess.new(file_attributes: { url: '/path/to/my/file.csv' })
+  process = Massive::FileProcess.new(file_attributes: { url: 'http://myserver.com/path/to/my/file.csv' })
   process.steps << ImportUsersStep.new
 ```
 
@@ -167,6 +167,25 @@ Notice that we didn't had to specify how the step would calculate the total coun
 ```
 
 We also didn't have to specify how the job would iterate through each row, it is already defined. We just get a CSV::Row, which will be a Hash-like structure where the header of the CSV is the key, so we can just pass it to `User.create`. Of course this is a simple example, you should protect the attributes, or even pass only the ones you want from the CSV.
+
+The `Massive::File` has support for [Fog::Storage][http://fog.io/storage/]. To use it yoy must define the `fog_credentials` and optionally the `fog_directory` and `fog_authenticated_url_expiration`:
+
+```ruby
+  Massive.fog_credentials = {
+    provider: 'AWS',
+    aws_access_key_id: 'INSERT-YOUR-AWS-KEY-HERE',
+    aws_secret_access_key: 'INSERT-YOUR-AWS-SECRET-HERE'
+  }
+
+  Massive.fog_directory = 'your-bucket-here' # defaults to 'massive'
+  Massive.fog_authenticated_url_expiration = 30.minutes # defaults to 1.hour
+```
+
+Then set the `filename` field when creating the `Massive::File` instead of setting its `url`. Notice that the filename should point to the full path within the bucket, not just the actual filename.
+
+```ruby
+  process = Massive::FileProcess.new(file_attributes: { filename: '/path/to/my/file.csv' })
+```
 
 ## Contributing
 

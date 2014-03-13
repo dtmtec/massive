@@ -6,6 +6,7 @@ module Massive
     embedded_in :process
 
     field :url,         type: String
+    field :filename,    type: String
 
     field :encoding,    type: String
     field :col_sep,     type: String
@@ -33,6 +34,10 @@ module Massive
       save
     end
 
+    def url
+      read_attribute(:url).presence || authenticated_url
+    end
+
     private
 
     def clear_info
@@ -47,6 +52,26 @@ module Massive
         encoding: encoding,
         col_sep:  col_sep
       }
+    end
+
+    def authenticated_url
+      fog_file.url(Massive.fog_authenticated_url_expiration) if can_use_fog?
+    end
+
+    def can_use_fog?
+      filename && Massive.fog_credentials.present?
+    end
+
+    def fog_connection
+      @fog_connection ||= Fog::Storage.new(Massive.fog_credentials)
+    end
+
+    def fog_directory
+      @fog_directory ||= fog_connection.directories.get(Massive.fog_directory)
+    end
+
+    def fog_file
+      @fog_file ||= fog_directory.files.get(filename)
     end
   end
 end
