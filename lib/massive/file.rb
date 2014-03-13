@@ -11,6 +11,7 @@ module Massive
     field :encoding,    type: String
     field :col_sep,     type: String
     field :total_count, type: Integer
+    field :use_headers, type: Boolean, default: true
 
     field :headers,     type: Array, default: -> { [] }
     field :sample_data, type: Array, default: -> { [] }
@@ -25,7 +26,7 @@ module Massive
       self.encoding    = processor.detected_encoding
       self.col_sep     = processor.col_sep
       self.total_count = processor.total_count
-      self.headers     = processor.shift && processor.headers
+      self.headers     = processor.shift && processor.headers if use_headers?
 
       processor.process_range(limit: 3) do |row|
         self.sample_data << row.fields
@@ -48,7 +49,7 @@ module Massive
 
     def processor_options
       {
-        headers:  true,
+        headers:  use_headers?,
         encoding: encoding,
         col_sep:  col_sep
       }

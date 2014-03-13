@@ -34,6 +34,22 @@ describe Massive::File do
       end
     end
 
+    describe "when specifying that the file should have no headers" do
+      subject(:file)  { process.file = Massive::File.new(url: url, encoding: encoding, col_sep: col_sep, use_headers: false) }
+
+      let(:expected_options) do
+        {
+          headers: false,
+          encoding: encoding,
+          col_sep: col_sep
+        }
+      end
+
+      it "creates a new instance of the CSV file processor, passing encoding and col_sep" do
+        file.processor.should eq(processor)
+      end
+    end
+
     describe "when using Fog" do
       let(:filename) { 'my-file.txt' }
       let(:fog_connection) { double(Fog::Storage) }
@@ -112,6 +128,23 @@ describe Massive::File do
     it "stores a sample data with 3 rows data, and persists it" do
       file.gather_info!
       file.reload.sample_data.should eq([row.fields, row.fields, row.fields])
+    end
+
+    context "when file has no headers" do
+      subject(:file) { process.file = Massive::File.new(url: url, encoding: encoding, col_sep: col_sep, use_headers: false) }
+
+      let(:expected_options) do
+        {
+          headers: false,
+          encoding: encoding,
+          col_sep: col_sep
+        }
+      end
+
+      it "do not store the headers" do
+        file.gather_info!
+        file.reload.headers.should be_blank
+      end
     end
 
     context "when file already has gathered info" do
