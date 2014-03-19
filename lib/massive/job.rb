@@ -107,5 +107,9 @@ module Massive
     def increment_processed
       inc(:processed, 1)
     end
+
+    def args_for_resque
+      [process.id.to_s, step.id.to_s, id.to_s]
+    end
   end
 end

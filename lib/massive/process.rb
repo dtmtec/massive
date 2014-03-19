@@ -16,7 +16,12 @@ module Massive
     end
 
     def enqueue_next
-      steps.not_completed.first.try(:enqueue)
+      next_step.try(:enqueue)
+    end
+
+    def next_step
+      step = steps.not_completed.not_started.first
+      step.try(:enqueued?) ? nil : step
     end
 
     def processed_percentage

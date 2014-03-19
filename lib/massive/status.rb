@@ -12,6 +12,7 @@ module Massive
       field :retries,      type: Integer, default: 0
 
       scope :started,       ne(started_at: nil)
+      scope :not_started,   where(started_at: nil)
       scope :completed,     ne(finished_at: nil)
       scope :not_completed, where(finished_at: nil)
       scope :failed,        ne(failed_at: nil)
@@ -34,6 +35,11 @@ module Massive
       failed_at?
     end
 
+    def enqueued?
+      item = Resque.peek(self.class.queue)
+      item.present? && (item["class"] == self.class.name) && (item["args"] == args_for_resque)
+    end
+
     protected
 
     def attributes_to_reset
@@ -45,6 +51,9 @@ module Massive
         retries: 0,
         last_error: nil
       }
+    end
+
+    def args_for_resque
     end
   end
 end

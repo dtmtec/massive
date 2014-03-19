@@ -41,6 +41,15 @@ describe Massive::Process do
         end
       end
 
+      context "and the first one is enqueued" do
+        before { first_step.stub(:enqueued?).and_return(true) }
+
+        it "does not enqueue the next step" do
+          second_step.should_not_receive(:enqueue)
+          process.enqueue_next
+        end
+      end
+
       context "but all of them are completed" do
         before do
           process.steps.each do |step|
@@ -56,6 +65,20 @@ describe Massive::Process do
           process.enqueue_next
         end
       end
+    end
+  end
+
+  describe "#next_step" do
+    let!(:step) { process.steps.build }
+
+    context "when the step is enqueued" do
+      before { step.stub(:enqueued?).and_return(true) }
+
+      its(:next_step) { should be_nil }
+    end
+
+    context "when the step is not enqueued" do
+      its(:next_step) { should eq step }
     end
   end
 

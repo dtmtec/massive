@@ -74,6 +74,18 @@ shared_examples_for Massive::Status do
       model.reload.retries.should be_zero
     end
   end
+
+  describe "#enqueued?" do
+    context "when model is enqueued" do
+      before { model.enqueue }
+
+      its(:enqueued?) { should be_true }
+    end
+
+    context "when model is not enqueued" do
+      its(:enqueued?) { should be_false }
+    end
+  end
 end
 
 describe Massive::Step do

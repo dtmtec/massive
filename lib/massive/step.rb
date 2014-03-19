@@ -131,5 +131,9 @@ module Massive
     def attributes_to_reset
       super.merge(total_count: total_count || calculate_total_count)
     end
+
+    def args_for_resque
+      [process.id.to_s, id.to_s]
+    end
   end
 end
