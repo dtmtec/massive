@@ -20,6 +20,10 @@ describe Massive::StepSerializer do
     serialized[:last_error].should eq(step.last_error)
   end
 
+  it "serializes notifier_id" do
+    serialized[:notifier_id].should eq(step.notifier_id)
+  end
+
   [ :retries, :memory_consumption, :total_count ].each do |field|
     it "serializes the #{field}" do
       step[field] = 100
