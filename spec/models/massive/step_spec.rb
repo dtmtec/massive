@@ -473,4 +473,18 @@ describe Massive::Step do
       step._type.should be_present
     end
   end
+
+  describe "#active_model_serializer" do
+    its(:active_model_serializer) { should eq Massive::StepSerializer }
+
+    context "when class inherits from Massive::Step and does not have a serializer" do
+      class TestStep < Massive::Step
+      end
+
+      it "returns Massive::StepSerializer" do
+        process = TestStep.new
+        process.active_model_serializer.should eq Massive::StepSerializer
+      end
+    end
+  end
 end

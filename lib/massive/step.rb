@@ -114,6 +114,10 @@ module Massive
       0
     end
 
+    def active_model_serializer
+      super || Massive::StepSerializer
+    end
+
     protected
 
     def job_params(index)

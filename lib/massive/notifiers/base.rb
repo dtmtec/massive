@@ -9,7 +9,7 @@ module Massive
         self.id   = id
         self.last = {}
 
-        self.options = options
+        self.options = options || {}
       end
 
       def notify(message, data=nil, &block)

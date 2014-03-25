@@ -218,4 +218,18 @@ describe Massive::Process do
       end
     end
   end
+
+  describe "#active_model_serializer" do
+    its(:active_model_serializer) { should eq Massive::ProcessSerializer }
+
+    context "when class inherits from Massive::Process and does not have a serializer" do
+      class TestProcess < Massive::Process
+      end
+
+      it "returns Massive::ProcessSerializer" do
+        process = TestProcess.new
+        process.active_model_serializer.should eq Massive::ProcessSerializer
+      end
+    end
+  end
 end

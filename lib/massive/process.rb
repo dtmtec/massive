@@ -42,6 +42,10 @@ module Massive
       save
     end
 
+    def active_model_serializer
+      super || Massive::ProcessSerializer
+    end
+
     protected
       def redis
         Massive.redis
