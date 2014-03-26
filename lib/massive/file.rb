@@ -56,7 +56,9 @@ module Massive
     end
 
     def authenticated_url
-      fog_file.url(Massive.fog_authenticated_url_expiration) if can_use_fog?
+      if can_use_fog?
+        fog_file.respond_to?(:url) ? fog_file.url(Massive.fog_authenticated_url_expiration) : fog_file.public_url
+      end
     end
 
     def can_use_fog?
