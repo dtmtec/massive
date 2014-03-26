@@ -141,9 +141,33 @@ describe Massive::File do
         }
       end
 
+      let(:processor) do
+        double(FileProcessor::CSV, {
+          detected_encoding: encoding,
+          col_sep:           col_sep,
+          total_count:       3,
+          shift:             true
+        })
+      end
+
+      let(:row) { ['some value', 'other value'] }
+
+      before do
+        processor.stub(:process_range)
+                 .with(limit: 3)
+                 .and_yield(row)
+                 .and_yield(row)
+                 .and_yield(row)
+      end
+
       it "do not store the headers" do
         file.gather_info!
         file.reload.headers.should be_blank
+      end
+
+      it "store raw row in the sample data" do
+        file.gather_info!
+        file.reload.sample_data.should eq [row, row, row]
       end
     end
 

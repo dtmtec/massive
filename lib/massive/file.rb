@@ -29,7 +29,7 @@ module Massive
       self.headers     = processor.shift && processor.headers if use_headers?
 
       processor.process_range(limit: 3) do |row|
-        self.sample_data << row.fields
+        self.sample_data << (use_headers? ? row.fields : row)
       end
 
       save
