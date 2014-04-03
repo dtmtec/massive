@@ -18,6 +18,6 @@ Gem::Specification.new do |gem|
 
   gem.add_dependency "resque"
   gem.add_dependency "mongoid", "~> 3.1.x"
-  gem.add_dependency "file_processor"
+  gem.add_dependency "file_processor", "0.2.0"
   gem.add_dependency "active_model_serializers"
 end
