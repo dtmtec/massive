@@ -67,7 +67,7 @@ describe Massive::File do
         Fog::Storage.stub(:new).with(Massive.fog_credentials).and_return(fog_connection)
         fog_connection.stub_chain(:directories, :get).with(Massive.fog_directory).and_return(fog_directory)
         fog_directory.stub_chain(:files, :get).with(filename).and_return(fog_file)
-        fog_file.stub(:url).with(Massive.fog_authenticated_url_expiration).and_return(authenticated_url)
+        fog_file.stub(:url).with(Time.current.to_i + Massive.fog_authenticated_url_expiration).and_return(authenticated_url)
       end
 
       it "creates a new instance of the CSV file processor, pointing its URL to the authenticated fog url" do
