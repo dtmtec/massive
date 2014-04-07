@@ -38,8 +38,15 @@ describe Massive::Step do
   end
 
   describe "#enqueue" do
+    before { step.stub(:reload).and_return(step) }
+
     it "enqueues itself, passing ids as strings" do
       Resque.should_receive(:enqueue).with(step.class, step.process.id.to_s, step.id.to_s)
+      step.enqueue
+    end
+
+    it "sends a :enqueued notification" do
+      step.should_receive(:notify).with(:enqueued)
       step.enqueue
     end
 

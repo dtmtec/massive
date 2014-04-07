@@ -77,7 +77,10 @@ shared_examples_for Massive::Status do
 
   describe "#enqueued?" do
     context "when model is enqueued" do
-      before { model.enqueue }
+      before do
+        model.stub(:reload).and_return(model)
+        model.enqueue
+      end
 
       its(:enqueued?) { should be_true }
     end

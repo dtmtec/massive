@@ -9,6 +9,12 @@ describe Massive::Process do
       let!(:second_step) { process.steps.build }
       let!(:third_step) { process.steps.build }
 
+      before do
+        first_step.stub(:reload).and_return(first_step)
+        second_step.stub(:reload).and_return(second_step)
+        third_step.stub(:reload).and_return(third_step)
+      end
+
       context "and none of them are completed" do
         it "enqueues the first step" do
           first_step.should_receive(:enqueue)

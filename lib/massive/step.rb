@@ -54,6 +54,7 @@ module Massive
 
     def enqueue
       Resque.enqueue(self.class, process.id.to_s, id.to_s)
+      notify(:enqueued)
     end
 
     def start!
