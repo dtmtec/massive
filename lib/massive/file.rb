@@ -35,6 +35,10 @@ module Massive
       save
     end
 
+    def has_info?
+      [:encoding, :col_sep, :total_count].all? { |field| send(field).present? }
+    end
+
     def url
       read_attribute(:url).presence || authenticated_url
     end

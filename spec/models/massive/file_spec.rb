@@ -206,4 +206,26 @@ describe Massive::File do
       end
     end
   end
+
+  describe "#has_info?" do
+    context "when file already has gathered info" do
+      before do
+        file.encoding = 'utf-8'
+        file.col_sep = '|'
+        file.total_count = 3000
+      end
+
+      its(:has_info?) { should be_true }
+    end
+
+    context "when file has not gathered info" do
+      before do
+        file.encoding = nil
+        file.col_sep = nil
+        file.total_count = nil
+      end
+
+      its(:has_info?) { should be_false }
+    end
+  end
 end
