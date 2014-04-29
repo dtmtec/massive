@@ -179,13 +179,30 @@ describe Massive::Process do
       its(:completed?) { should be_false }
     end
 
-    context "when therere are no incompleted steps" do
+    context "when there are no incompleted steps" do
       before do
         step_1.update_attributes(finished_at: Time.now, failed_at: nil)
         step_2.update_attributes(finished_at: Time.now, failed_at: nil)
       end
 
       its(:completed?) { should be_true }
+    end
+  end
+
+  describe "#failed?" do
+    let!(:step_1) { process.steps.build }
+    let!(:step_2) { process.steps.build }
+
+    before { process.save }
+
+    context "when the steps not failed" do
+      its(:failed?) { should be_false }
+    end
+
+    context "when any step failed" do
+      before { step_2.update_attributes(failed_at: Time.now) }
+
+      its(:failed?) { should be_true }
     end
   end
 

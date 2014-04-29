@@ -32,6 +32,10 @@ module Massive
       steps.not_completed.none?
     end
 
+    def failed?
+      steps.any? { |step| step.failed_at? }
+    end
+
     def cancelled?
       cancelled_at? || redis.exists(cancelled_key)
     end
