@@ -40,7 +40,7 @@ module Massive
     end
 
     def url
-      read_attribute(:url).presence || authenticated_url
+      read_attribute(:url).presence || authenticator.url
     end
 
     private
@@ -59,26 +59,8 @@ module Massive
       }
     end
 
-    def authenticated_url
-      if can_use_fog?
-        fog_file.respond_to?(:url) ? fog_file.url(Time.current.to_i + Massive.fog_authenticated_url_expiration) : fog_file.public_url
-      end
-    end
-
-    def can_use_fog?
-      filename && Massive.fog_credentials.present?
-    end
-
-    def fog_connection
-      @fog_connection ||= Fog::Storage.new(Massive.fog_credentials)
-    end
-
-    def fog_directory
-      @fog_directory ||= fog_connection.directories.get(Massive.fog_directory)
-    end
-
-    def fog_file
-      @fog_file ||= fog_directory.files.get(filename)
+    def authenticator
+      @authenticator ||= Massive.storage_config[:provider].new(filename)
     end
   end
 end

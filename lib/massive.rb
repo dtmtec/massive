@@ -23,38 +23,32 @@ module Massive
   autoload :ProcessSerializer, 'massive/process_serializer'
   autoload :StepSerializer,    'massive/step_serializer'
 
+  module Authenticators
+    autoload :S3,              'massive/authenticators/s3'
+  end
+
   class Cancelled < StandardError; end
 
   def self.redis
     @redis ||= Resque.redis
   end
 
-  def self.fog_credentials
-    @fog_credentials
+  def self.storage_config
+    @storage_config
   end
 
-  def self.fog_credentials=(values=nil)
-    @fog_credentials = values
+  def self.storage_config=(value)
+    @storage_config ||= {}
+    @storage_config.merge!(value)
   end
 
-  def self.fog_authenticated_url_expiration
-    @fog_authenticated_url_expiration
-  end
-
-  def self.fog_authenticated_url_expiration=(value=nil)
-    @fog_authenticated_url_expiration = value
-  end
-
-  def self.fog_directory
-    @fog_directory
-  end
-
-  def self.fog_directory=(directory=nil)
-    @fog_directory = directory
-  end
-
-  self.fog_directory = 'massive'
-  self.fog_authenticated_url_expiration = 1 * 60 * 60
+  self.storage_config = {
+    directory: 'massive',
+    provider: Massive::Authenticators::S3,
+    key: nil,
+    secret: nil,
+    expiration: 1 * 60 * 60 # 1 hour
+  }
 end
 
 require "resque"

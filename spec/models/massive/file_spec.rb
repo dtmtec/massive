@@ -18,7 +18,11 @@ describe Massive::File do
 
   subject(:file)  { process.file = Massive::File.new(url: url, encoding: encoding, col_sep: col_sep) }
 
-  before { FileProcessor::CSV.stub(:new).with(file.url, expected_options).and_return(processor) }
+  def stub_processor
+    FileProcessor::CSV.stub(:new).with(file.url, expected_options).and_return(processor)
+  end
+
+  before { stub_processor }
 
   describe "#processor" do
     it "creates a new instance of the CSV file processor, enabling headers but without encoding and separator" do
@@ -50,28 +54,20 @@ describe Massive::File do
       end
     end
 
-    describe "when using Fog" do
-      let(:filename) { 'my-file.txt' }
-      let(:fog_connection) { double(Fog::Storage) }
-      let(:fog_directory) { double('Directory') }
-      let(:fog_file) { double('File') }
-      let(:authenticated_url) { 'http://my-auth.url.com' }
+    describe "when passing a filename" do
+      let(:filename) { 'my/path/my-file.txt' }
+      let(:url) { 'http://my-auth.url.com' }
+      let(:provider) { double(Massive::Authenticators::S3, url: url) }
 
-      subject(:file)  { Massive::File.new(filename: filename, encoding: encoding, col_sep: col_sep) }
+      subject(:file) { Massive::File.new(filename: filename, encoding: encoding, col_sep: col_sep) }
 
-      before do
-        Massive.fog_credentials = { provider: 'AWS', aws_access_key_id: 'some-key', aws_secret_access_key: 'some-secret' }
-        Massive.fog_authenticated_url_expiration = 1.hour
-        Massive.fog_directory = 'my-bucket'
-
-        Fog::Storage.stub(:new).with(Massive.fog_credentials).and_return(fog_connection)
-        fog_connection.stub_chain(:directories, :get).with(Massive.fog_directory).and_return(fog_directory)
-        fog_directory.stub_chain(:files, :get).with(filename).and_return(fog_file)
-        fog_file.stub(:url).with(Time.current.to_i + Massive.fog_authenticated_url_expiration).and_return(authenticated_url)
+      def stub_processor
+        Massive.storage_config[:provider].stub(:new).with(filename).and_return(provider)
+        FileProcessor::CSV.stub(:new).with(file.url, expected_options).and_return(processor)
       end
 
-      it "creates a new instance of the CSV file processor, pointing its URL to the authenticated fog url" do
-        FileProcessor::CSV.should_receive(:new).with(authenticated_url, expected_options).and_return(processor)
+      it "creates a new instance of the CSV file processor, pointing its URL to the authenticator provider url" do
+        FileProcessor::CSV.should_receive(:new).with(url, expected_options).and_return(processor)
         file.processor.should eq(processor)
       end
     end

@@ -4,8 +4,6 @@ gemspec
 
 gem 'rake'
 
-gem 'fog'
-
 group(:development) do
   gem 'debugger'
   gem 'guard-rspec', require: false
