@@ -11,12 +11,12 @@ module Massive
       field :last_error,   type: String
       field :retries,      type: Integer, default: 0
 
-      scope :started,       ne(started_at: nil)
-      scope :not_started,   where(started_at: nil)
-      scope :completed,     ne(finished_at: nil)
-      scope :not_completed, where(finished_at: nil)
-      scope :failed,        ne(failed_at: nil)
-      scope :cancelled,     ne(cancelled_at: nil)
+      scope :started,       -> { ne(started_at: nil) }
+      scope :not_started,   -> { where(started_at: nil) }
+      scope :completed,     -> { ne(finished_at: nil) }
+      scope :not_completed, -> { where(finished_at: nil) }
+      scope :failed,        -> { ne(failed_at: nil) }
+      scope :cancelled,     -> { ne(cancelled_at: nil) }
     end
 
     def start!

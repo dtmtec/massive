@@ -105,7 +105,7 @@ module Massive
     end
 
     def increment_processed
-      inc(:processed, 1)
+      inc(processed: 1)
     end
 
     def args_for_resque
