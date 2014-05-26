@@ -33,6 +33,14 @@ module Massive
     @redis ||= Resque.redis
   end
 
+  def self.split_jobs
+    @split_jobs
+  end
+
+  def self.split_jobs=(value)
+    @split_jobs = value
+  end
+
   def self.storage_config
     @storage_config
   end

@@ -26,7 +26,21 @@ module Massive
     end
 
     def self.queue
-      :massive_job
+      if split_jobs
+        :"#{queue_prefix}_#{Kernel.rand(split_jobs) + 1}"
+      else
+        queue_prefix
+      end
+    end
+
+    def self.queue_prefix(value=nil)
+      @queue_prefix = value if !value.nil?
+      @queue_prefix || :massive_job
+    end
+
+    def self.split_jobs(value=nil)
+      @split_jobs = value if !value.nil?
+      @split_jobs.nil? ? Massive.split_jobs : @split_jobs
     end
 
     def enqueue

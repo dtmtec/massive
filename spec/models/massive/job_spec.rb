@@ -20,8 +20,56 @@ describe Massive::Job do
   end
 
   describe ".queue" do
+    after { Massive::Job.queue_prefix(:massive_job) }
+
     it "should be massive_job" do
       Massive::Job.queue.should eq(:massive_job)
+    end
+
+    it "should use queue_prefix" do
+      Massive::Job.queue_prefix(:my_job_queue)
+      Massive::Job.queue.should eq(:my_job_queue)
+    end
+
+    context "when Massive.split_jobs is set to 100" do
+      before { Massive.split_jobs = 100 }
+      after  { Massive.split_jobs = false }
+
+      it "should be massive_job_XXX where XXX is a random number" do
+        values = 10000.times.inject({}) do |memo, index|
+          match = Massive::Job.queue.to_s.match(/massive_job_(\d+)/)
+          memo[match[1].to_i] ||= 0
+          memo[match[1].to_i] += 1
+          memo
+        end
+
+        (1..100).each do |key|
+          expect(values.keys.sort).to include(key)
+        end
+      end
+
+      it "should use the queue prefix" do
+        Massive::Job.queue_prefix(:my_job_queue)
+        expect(Massive::Job.queue.to_s).to start_with('my_job_queue')
+      end
+
+      context "when Job split_jobs is set to 10" do
+        before { Massive::Job.split_jobs 200 }
+        after  { Massive::Job.split_jobs false }
+
+        it "should be massive_job_XXX where XXX is a random number between 1 and 10" do
+          values = 10000.times.inject({}) do |memo, index|
+            match = Massive::Job.queue.to_s.match(/massive_job_(\d+)/)
+            memo[match[1].to_i] ||= 0
+            memo[match[1].to_i] += 1
+            memo
+          end
+
+          (1..200).each do |key|
+            expect(values.keys.sort).to include(key)
+          end
+        end
+      end
     end
   end
 
