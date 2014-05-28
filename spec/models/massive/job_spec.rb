@@ -267,6 +267,20 @@ describe Massive::Job do
         rescue StandardError, SignalException
         end
       end
+
+      context "when it is configured to cancel when failed" do
+        before { Massive::Job.cancel_when_failed true }
+        after  { Massive::Job.cancel_when_failed false }
+
+        it "cancels the process" do
+          expect(process).to receive(:cancel)
+
+          begin
+            job.work
+          rescue StandardError, SignalException
+          end
+        end
+      end
     end
 
     context "when an error occurs" do

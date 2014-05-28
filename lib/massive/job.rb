@@ -43,6 +43,11 @@ module Massive
       @split_jobs.nil? ? Massive.split_jobs : @split_jobs
     end
 
+    def self.cancel_when_failed(value=nil)
+      @cancel_when_failed = value if !value.nil?
+      @cancel_when_failed
+    end
+
     def enqueue
       Resque.enqueue(self.class, process.id.to_s, step.id.to_s, id.to_s)
     end
@@ -115,6 +120,7 @@ module Massive
       step.save
       notify(:failed)
 
+      process.cancel if self.class.cancel_when_failed
       raise e
     end
 
