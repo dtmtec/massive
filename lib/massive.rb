@@ -22,6 +22,7 @@ module Massive
 
   autoload :ProcessSerializer, 'massive/process_serializer'
   autoload :StepSerializer,    'massive/step_serializer'
+  autoload :FileSerializer,    'massive/file_serializer'
 
   module Authenticators
     autoload :S3,              'massive/authenticators/s3'

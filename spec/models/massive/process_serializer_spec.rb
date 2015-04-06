@@ -35,4 +35,18 @@ describe Massive::ProcessSerializer do
       serialized[:completed].should be_false
     end
   end
+
+  context "when it does not respond to file" do
+    it "does not serializes file" do
+      serialized[:file].should be_blank
+    end
+  end
+
+  context "when it responds to file" do
+    let(:process) { Massive::FileProcess.new }
+
+    it "serializes file" do
+      serialized[:file].should be_present
+    end
+  end
 end
