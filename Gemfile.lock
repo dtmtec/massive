@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    massive (0.3.0)
+    massive (0.4.0)
       active_model_serializers
       file_processor (= 0.2.0)
       mongoid (~> 4.0.0.beta)
