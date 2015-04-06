@@ -9,7 +9,7 @@ module Massive
     include Massive::Locking
     include Massive::Notifications
 
-    embedded_in :process, class_name: 'Massive::Process'
+    belongs_to :process, class_name: 'Massive::Process'
     embeds_many :jobs,    class_name: 'Massive::Job'
 
     field :total_count,  type: Integer

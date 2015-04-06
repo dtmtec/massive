@@ -8,6 +8,8 @@ describe Massive::Job do
   let(:step) { process.steps.build }
   subject(:job) { step.jobs.build }
 
+  before { job.stub(:process).and_return(process) }
+
   describe ".perform" do
     before do
       Massive::Process.stub(:find_job).with(process.id, step.id, job.id).and_return(job)

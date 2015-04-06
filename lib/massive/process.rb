@@ -5,7 +5,7 @@ module Massive
 
     field :cancelled_at, type: Time
 
-    embeds_many :steps, class_name: 'Massive::Step'
+    has_many :steps, class_name: 'Massive::Step', dependent: :destroy
 
     def self.find_step(process_id, step_id)
       find(process_id).steps.find(step_id)

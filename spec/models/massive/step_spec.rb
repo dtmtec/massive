@@ -7,6 +7,8 @@ describe Massive::Step do
   let(:process) { Massive::Process.new }
   subject(:step) { process.steps.build }
 
+  before { step.stub(:process).and_return(process) }
+
   describe ".perform" do
     before do
       Massive::Process.stub(:find_step).with(process.id, step.id).and_return(step)

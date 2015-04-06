@@ -1,81 +1,45 @@
 require "spec_helper"
 
 describe Massive::Process do
-  subject(:process) { Massive::Process.new }
+  subject(:process) { Massive::Process.create }
 
   describe "#enqueue_next" do
-    context "when there are steps" do
-      let!(:first_step) { process.steps.build }
-      let!(:second_step) { process.steps.build }
-      let!(:third_step) { process.steps.build }
+    context "when there is a next steps" do
+      let(:step) { process.steps.create }
 
       before do
-        first_step.stub(:reload).and_return(first_step)
-        second_step.stub(:reload).and_return(second_step)
-        third_step.stub(:reload).and_return(third_step)
+        process.stub(:next_step).and_return(step)
       end
 
-      context "and none of them are completed" do
-        it "enqueues the first step" do
-          first_step.should_receive(:enqueue)
-          process.enqueue_next
-        end
+      it "enqueues the step" do
+        step.should_receive(:enqueue)
+        process.enqueue_next
+      end
+    end
 
-        it "does not enqueue the other steps" do
-          second_step.should_not_receive(:enqueue)
-          third_step.should_not_receive(:enqueue)
-          process.enqueue_next
-        end
+    context "when there is no next step" do
+      before do
+        process.stub(:next_step).and_return(nil)
       end
 
-      context "and the first one is completed, but the second one is not" do
-        before { first_step.finished_at = Time.now }
-
-        it "does not enqueue the first step" do
-          first_step.should_not_receive(:enqueue)
+      it "does not raise error" do
+        expect {
           process.enqueue_next
-        end
-
-        it "enqueues the second step" do
-          second_step.should_receive(:enqueue)
-          process.enqueue_next
-        end
-
-        it "does not enqueue the third step" do
-          third_step.should_not_receive(:enqueue)
-          process.enqueue_next
-        end
-      end
-
-      context "and the first one is enqueued" do
-        before { first_step.stub(:enqueued?).and_return(true) }
-
-        it "does not enqueue the next step" do
-          second_step.should_not_receive(:enqueue)
-          process.enqueue_next
-        end
-      end
-
-      context "but all of them are completed" do
-        before do
-          process.steps.each do |step|
-            step.finished_at = Time.now
-          end
-        end
-
-        it "does not enqueue any of the steps" do
-          process.steps.each do |step|
-            step.should_not_receive(:enqueue)
-          end
-
-          process.enqueue_next
-        end
+        }.to_not raise_error
       end
     end
   end
 
   describe "#next_step" do
-    let!(:step) { process.steps.build }
+    let!(:step) { process.steps.create }
+
+    before do
+      steps = double('Array')
+      process.stub(:steps).and_return(steps)
+      steps.stub(:not_completed).and_return(steps)
+      steps.stub(:not_started).and_return(steps)
+      steps.stub(:first).and_return(step)
+    end
 
     context "when the step is enqueued" do
       before { step.stub(:enqueued?).and_return(true) }
@@ -84,14 +48,14 @@ describe Massive::Process do
     end
 
     context "when the step is not enqueued" do
+      before { step.stub(:enqueued?).and_return(false) }
+
       its(:next_step) { should eq step }
     end
   end
 
   describe ".find_step" do
-    let!(:step) { process.steps.build }
-
-    before { process.save }
+    let!(:step) { process.steps.create }
 
     it "returns the step with id within the process" do
       Massive::Process.find_step(process.id, step.id).should eq(step)
@@ -99,10 +63,8 @@ describe Massive::Process do
   end
 
   describe ".find_job" do
-    let!(:step) { process.steps.build }
-    let!(:job)  { step.jobs.build }
-
-    before { process.save }
+    let!(:step) { process.steps.create }
+    let!(:job)  { step.jobs.create }
 
     it "returns the job with id within the step of the process" do
       Massive::Process.find_job(process.id, step.id, job.id).should eq(job)
@@ -110,8 +72,8 @@ describe Massive::Process do
   end
 
   describe "#processed_percentage" do
-    let(:step_1)  { process.steps.build(weight: 9) }
-    let(:step_2)  { process.steps.build            }
+    let(:step_1)  { process.steps.create(weight: 9) }
+    let(:step_2)  { process.steps.create            }
 
     context "when the process have not started" do
       before do
@@ -162,18 +124,18 @@ describe Massive::Process do
     end
 
     context "when the total weight of the steps is zero" do
-      let(:step_1)  { process.steps.build(weight: 0) }
-      let(:step_2)  { process.steps.build(weight: 0) }
+      let(:step_1)  { process.steps.create(weight: 0) }
+      let(:step_2)  { process.steps.create(weight: 0) }
 
       its(:processed_percentage) { should eq 0 }
     end
   end
 
   describe "#completed?" do
-    let!(:step_1)  { process.steps.build }
-    let!(:step_2)  { process.steps.build }
-
     before { process.save }
+
+    let!(:step_1)  { process.steps.create }
+    let!(:step_2)  { process.steps.create }
 
     context "when the steps are incompleted steps" do
       its(:completed?) { should be_false }
@@ -190,8 +152,8 @@ describe Massive::Process do
   end
 
   describe "#failed?" do
-    let!(:step_1) { process.steps.build }
-    let!(:step_2) { process.steps.build }
+    let!(:step_1) { process.steps.create }
+    let!(:step_2) { process.steps.create }
 
     before { process.save }
 
