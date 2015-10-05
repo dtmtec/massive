@@ -8,15 +8,15 @@ describe Massive::Job do
   let(:step) { process.steps.build }
   subject(:job) { step.jobs.build }
 
-  before { job.stub(:process).and_return(process) }
+  before { allow(job).to receive(:process).and_return(process) }
 
   describe ".perform" do
     before do
-      Massive::Process.stub(:find_job).with(process.id, step.id, job.id).and_return(job)
+      allow(Massive::Process).to receive(:find_job).with(process.id, step.id, job.id).and_return(job)
     end
 
     it "finds the job and calls work on it" do
-      job.should_receive(:work)
+      expect(job).to receive(:work)
       Massive::Job.perform(process.id, step.id, job.id)
     end
   end
@@ -25,12 +25,12 @@ describe Massive::Job do
     after { Massive::Job.queue_prefix(:massive_job) }
 
     it "should be massive_job" do
-      Massive::Job.queue.should eq(:massive_job)
+      expect(Massive::Job.queue).to eq(:massive_job)
     end
 
     it "should use queue_prefix" do
       Massive::Job.queue_prefix(:my_job_queue)
-      Massive::Job.queue.should eq(:my_job_queue)
+      expect(Massive::Job.queue).to eq(:my_job_queue)
     end
 
     context "when Massive.split_jobs is set to 100" do
@@ -77,7 +77,7 @@ describe Massive::Job do
 
   describe "#enqueue" do
     it "enqueues itself, passing ids as strings" do
-      Resque.should_receive(:enqueue).with(job.class, process.id.to_s, step.id.to_s, job.id.to_s)
+      expect(Resque).to receive(:enqueue).with(job.class, process.id.to_s, step.id.to_s, job.id.to_s)
       job.enqueue
     end
 
@@ -86,7 +86,7 @@ describe Massive::Job do
       before { step.jobs << job }
 
       it "enqueues itself, passing ids as strings" do
-        Resque.should_receive(:enqueue).with(job.class, process.id.to_s, step.id.to_s, job.id.to_s)
+        expect(Resque).to receive(:enqueue).with(job.class, process.id.to_s, step.id.to_s, job.id.to_s)
         job.enqueue
       end
     end
@@ -94,7 +94,7 @@ describe Massive::Job do
 
   describe "when creating" do
     it "enqueues the job" do
-      job.should_receive(:enqueue)
+      expect(job).to receive(:enqueue)
       job.save
     end
   end
@@ -102,32 +102,32 @@ describe Massive::Job do
   describe "#start!" do
     it "zeroes the processed items, persisting it" do
       job.start!
-      job.reload.processed.should be_zero
+      expect(job.reload.processed).to be_zero
     end
   end
 
   describe "#finish!" do
     it "updates the finished_at with the current time, persisting it" do
       job.finish!
-      job.reload.finished_at.to_i.should eq(now.to_i)
+      expect(job.reload.finished_at.to_i).to eq(now.to_i)
     end
 
     it "updates the memory_consumption, persisting it" do
       job.finish!
-      job.reload.memory_consumption.should eq(current_memory_consumption)
+      expect(job.reload.memory_consumption).to eq(current_memory_consumption)
     end
 
     it "calls step#complete" do
-      step.should_receive(:complete)
+      expect(step).to receive(:complete)
       job.finish!
     end
   end
 
   describe "#work" do
     it "starts the job, then runs through each item, and finally finishes the job" do
-      job.should_receive(:start!) do
-        job.should_receive(:each_item) do
-          job.should_receive(:finish!)
+      expect(job).to receive(:start!) do
+        expect(job).to receive(:each_item) do
+          expect(job).to receive(:finish!)
         end
       end
 
@@ -139,11 +139,11 @@ describe Massive::Job do
 
       it "increments the number of processed items by one" do
         job.work
-        job.reload.processed.should eq(1)
+        expect(job.reload.processed).to eq(1)
       end
 
       it "process the item" do
-        job.should_receive(:process_each).with(item, 0).once
+        expect(job).to receive(:process_each).with(item, 0).once
         job.work
       end
     end
@@ -152,49 +152,50 @@ describe Massive::Job do
       include_context "job processing"
 
       before do
-        job.stub(:each_item).and_yield(item, index)
-                            .and_yield(item, index + 1)
-                            .and_yield(item, index + 2)
+        allow(job).to receive(:each_item)
+          .and_yield(item, index)
+          .and_yield(item, index + 1)
+          .and_yield(item, index + 2)
       end
 
       it "increments the number of processed items by the number of items processed" do
         job.work
-        job.reload.processed.should eq(3)
+        expect(job.reload.processed).to eq(3)
       end
 
       it "process each one of the items" do
-        job.should_receive(:process_each).with(item, 0).once
-        job.should_receive(:process_each).with(item, 1).once
-        job.should_receive(:process_each).with(item, 2).once
+        expect(job).to receive(:process_each).with(item, 0).once
+        expect(job).to receive(:process_each).with(item, 1).once
+        expect(job).to receive(:process_each).with(item, 2).once
         job.work
       end
 
       it "sends a :progress notification" do
-        step.stub(:notify)
-        step.should_receive(:notify).with(:progress)
+        expect(step).to receive(:notify).with(:progress).exactly(3).times
+        expect(step).to receive(:notify).with(:complete).once
         job.work
       end
     end
 
     context "when it is cancelled" do
-      before { step.stub(:notify) }
+      before { allow(step).to receive(:notify) }
 
       context "before it is started" do
-        before { process.stub(:cancelled?).and_return(true) }
+        before { allow(process).to receive(:cancelled?).and_return(true) }
 
         it "sends a cancelled notification" do
-          step.should_receive(:notify).with(:cancelled)
+          expect(step).to receive(:notify).with(:cancelled)
           job.work
         end
 
         it "sets the step cancelled_at" do
           job.work
-          step.reload.should be_cancelled_at
+          expect(step.reload).to be_cancelled_at
         end
 
         it "sets the job cancelled_at" do
           job.work
-          job.reload.should be_cancelled_at
+          expect(job.reload).to be_cancelled_at
         end
       end
 
@@ -203,36 +204,36 @@ describe Massive::Job do
         let(:index) { 0 }
 
         before do
-          job.stub(:each_item).and_yield(item, index)
-                              .and_yield(item, index + 1)
-                              .and_yield(item, index + 2)
+          allow(job).to receive(:each_item)
+            .and_yield(item, index)
+            .and_yield(item, index + 1)
+            .and_yield(item, index + 2)
 
-          job.stub(:process_each) do
-            process.stub(:cancelled?).and_return(true)
-          end
+          allow(job).to receive(:process_each)
+          allow(process).to receive(:cancelled?).and_return(true)
 
-          Kernel.stub(:sleep)
+          allow(Kernel).to receive(:sleep)
         end
 
         it "sends a cancelled notification" do
-          step.should_receive(:notify).with(:cancelled)
+          expect(step).to receive(:notify).with(:cancelled)
           job.work
         end
 
         it "sets the step cancelled_at" do
           job.work
-          step.reload.should be_cancelled_at
+          expect(step.reload).to be_cancelled_at
         end
 
         it "sets the job cancelled_at" do
           job.work
-          job.reload.should be_cancelled_at
+          expect(job.reload).to be_cancelled_at
         end
 
         it "does not retry the processing" do
-          Kernel.should_not_receive(:sleep)
+          expect(Kernel).to_not receive(:sleep)
           job.work
-          job.reload.retries.should be_zero
+          expect(job.reload.retries).to be_zero
         end
       end
     end
@@ -248,7 +249,7 @@ describe Massive::Job do
         rescue StandardError, SignalException
         end
 
-        step.reload.should be_failed
+        expect(step.reload).to be_failed
       end
 
       it "saves the last error" do
@@ -257,12 +258,11 @@ describe Massive::Job do
         rescue StandardError, SignalException
         end
 
-        job.reload.last_error.should eq(error.message)
+        expect(job.reload.last_error).to eq(error.message)
       end
 
       it "sends a :failed notification" do
-        step.stub(:notify)
-        step.should_receive(:notify).with(:failed)
+        expect(step).to receive(:notify).with(:failed)
 
         begin
           job.work
@@ -289,13 +289,13 @@ describe Massive::Job do
       let(:error) { StandardError.new('some-error') }
 
       context "while starting" do
-        before { job.stub(:start!).and_raise(error) }
+        before { allow(job).to receive(:start!).and_raise(error) }
 
         it_should_behave_like "handles error"
       end
 
       context "while running through each item" do
-        before { job.stub(:each_item).and_raise(error) }
+        before { allow(job).to receive(:each_item).and_raise(error) }
 
         it_should_behave_like "handles error"
       end
@@ -303,15 +303,15 @@ describe Massive::Job do
       context "while processing each item" do
         include_context "job processing"
 
-        before { job.stub(:process_each).and_raise(error) }
+        before { allow(job).to receive(:process_each).and_raise(error) }
 
         it_should_behave_like "handles error"
 
         it "retries 10 times, with a 2 second interval" do
-          Kernel.should_receive(:sleep).with(retry_interval).exactly(maximum_retries - 1).times
-          job.should_receive(:process_each).exactly(maximum_retries).times.and_raise(error)
+          expect(Kernel).to receive(:sleep).with(retry_interval).exactly(maximum_retries - 1).times
+          expect(job).to receive(:process_each).exactly(maximum_retries).times.and_raise(error)
           expect { job.work }.to raise_error(error)
-          job.reload.retries.should eq(maximum_retries)
+          expect(job.reload.retries).to eq(maximum_retries)
         end
 
         context "when a subclass redefines the retry interval and maximum retries" do
@@ -319,16 +319,16 @@ describe Massive::Job do
           before { step.jobs << job }
 
           it "retries 20 times, with a 5 second interval" do
-            Kernel.should_receive(:sleep).with(retry_interval).exactly(maximum_retries - 1).times
-            job.should_receive(:process_each).exactly(maximum_retries).times.and_raise(error)
+            expect(Kernel).to receive(:sleep).with(retry_interval).exactly(maximum_retries - 1).times
+            expect(job).to receive(:process_each).exactly(maximum_retries).times.and_raise(error)
             expect { job.work }.to raise_error(error)
-            job.reload.retries.should eq(maximum_retries)
+            expect(job.reload.retries).to eq(maximum_retries)
           end
         end
       end
 
       context "while finishing" do
-        before { job.stub(:finish!).and_raise(error) }
+        before { allow(job).to receive(:finish!).and_raise(error) }
 
         it_should_behave_like "handles error"
       end
@@ -338,13 +338,13 @@ describe Massive::Job do
       let(:error) { SignalException.new('TERM') }
 
       context "while starting" do
-        before { job.stub(:start!).and_raise(error) }
+        before { allow(job).to receive(:start!).and_raise(error) }
 
         it_should_behave_like "handles error"
       end
 
       context "while running through each item" do
-        before { job.stub(:each_item).and_raise(error) }
+        before { allow(job).to receive(:each_item).and_raise(error) }
 
         it_should_behave_like "handles error"
       end
@@ -352,20 +352,20 @@ describe Massive::Job do
       context "while processing each item" do
         include_context "job processing"
 
-        before { job.stub(:process_each).and_raise(error) }
+        before { allow(job).to receive(:process_each).and_raise(error) }
 
         it_should_behave_like "handles error"
 
         it "does not retry the processing, raising error immediately" do
-          Kernel.should_not_receive(:sleep)
-          job.should_receive(:process_each).once.and_raise(error)
+          expect(Kernel).to_not receive(:sleep)
+          expect(job).to receive(:process_each).once.and_raise(error)
           expect { job.work }.to raise_error(error)
-          job.reload.retries.should be_zero
+          expect(job.reload.retries).to be_zero
         end
       end
 
       context "while finishing" do
-        before { job.stub(:finish!).and_raise(error) }
+        before { allow(job).to receive(:finish!).and_raise(error) }
 
         it_should_behave_like "handles error"
       end
@@ -377,7 +377,7 @@ describe Massive::Job do
     before { step.jobs << job }
 
     it "properly sets the _type" do
-      job._type.should be_present
+      expect(job._type).to be_present
     end
   end
 end

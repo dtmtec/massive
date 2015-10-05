@@ -19,14 +19,14 @@ describe Massive::File do
   subject(:file)  { process.file = Massive::File.new(url: url, encoding: encoding, col_sep: col_sep) }
 
   def stub_processor
-    FileProcessor::CSV.stub(:new).with(file.url, expected_options).and_return(processor)
+    allow(FileProcessor::CSV).to receive(:new).with(file.url, expected_options).and_return(processor)
   end
 
   before { stub_processor }
 
   describe "#processor" do
     it "creates a new instance of the CSV file processor, enabling headers but without encoding and separator" do
-      file.processor.should eq(processor)
+      expect(file.processor).to eq(processor)
     end
 
     context "when encoding and col_sep are defined" do
@@ -34,11 +34,11 @@ describe Massive::File do
       let(:col_sep)   { ';' }
 
       it "creates a new instance of the CSV file processor, passing encoding and col_sep" do
-        file.processor.should eq(processor)
+        expect(file.processor).to eq(processor)
       end
     end
 
-    describe "when specifying that the file should have no headers" do
+    describe "when specifying that the file is_expected.to have no headers" do
       subject(:file)  { process.file = Massive::File.new(url: url, encoding: encoding, col_sep: col_sep, use_headers: false) }
 
       let(:expected_options) do
@@ -50,7 +50,7 @@ describe Massive::File do
       end
 
       it "creates a new instance of the CSV file processor, passing encoding and col_sep" do
-        file.processor.should eq(processor)
+        expect(file.processor).to eq(processor)
       end
     end
 
@@ -62,13 +62,13 @@ describe Massive::File do
       subject(:file) { Massive::File.new(filename: filename, encoding: encoding, col_sep: col_sep) }
 
       def stub_processor
-        Massive.storage_config[:provider].stub(:new).with(filename).and_return(provider)
-        FileProcessor::CSV.stub(:new).with(file.url, expected_options).and_return(processor)
+        allow(Massive.storage_config[:provider]).to receive(:new).with(filename).and_return(provider)
+        allow(FileProcessor::CSV).to receive(:new).with(file.url, expected_options).and_return(processor)
       end
 
       it "creates a new instance of the CSV file processor, pointing its URL to the authenticator provider url" do
-        FileProcessor::CSV.should_receive(:new).with(url, expected_options).and_return(processor)
-        file.processor.should eq(processor)
+        expect(FileProcessor::CSV).to receive(:new).with(url, expected_options).and_return(processor)
+        expect(file.processor).to eq(processor)
       end
     end
   end
@@ -94,7 +94,7 @@ describe Massive::File do
     end
 
     before do
-      processor.stub(:process_range)
+      allow(processor).to receive(:process_range)
                .with(limit: 3)
                .and_yield(row)
                .and_yield(row)
@@ -103,27 +103,27 @@ describe Massive::File do
 
     it "detects the file encoding, and persists it" do
       file.gather_info!
-      file.reload.encoding.should eq(detected_encoding)
+      expect(file.reload.encoding).to eq(detected_encoding)
     end
 
     it "detects the column separator, and persists it" do
       file.gather_info!
-      file.reload.col_sep.should eq(detected_col_sep)
+      expect(file.reload.col_sep).to eq(detected_col_sep)
     end
 
     it "stores the total count, and persists it" do
       file.gather_info!
-      file.reload.total_count.should eq(total_count)
+      expect(file.reload.total_count).to eq(total_count)
     end
 
     it "stores the headers, and persists it" do
       file.gather_info!
-      file.reload.headers.should eq(headers)
+      expect(file.reload.headers).to eq(headers)
     end
 
     it "stores a sample data with 3 rows data, and persists it" do
       file.gather_info!
-      file.reload.sample_data.should eq([row.fields, row.fields, row.fields])
+      expect(file.reload.sample_data).to eq([row.fields, row.fields, row.fields])
     end
 
     context "when file has no headers" do
@@ -149,7 +149,7 @@ describe Massive::File do
       let(:row) { ['some value', 'other value'] }
 
       before do
-        processor.stub(:process_range)
+        allow(processor).to receive(:process_range)
                  .with(limit: 3)
                  .and_yield(row)
                  .and_yield(row)
@@ -158,12 +158,12 @@ describe Massive::File do
 
       it "do not store the headers" do
         file.gather_info!
-        file.reload.headers.should be_blank
+        expect(file.reload.headers).to be_blank
       end
 
       it "store raw row in the sample data" do
         file.gather_info!
-        file.reload.sample_data.should eq [row, row, row]
+        expect(file.reload.sample_data).to eq [row, row, row]
       end
     end
 
@@ -178,27 +178,27 @@ describe Massive::File do
 
       it "detects the file encoding, and persists it" do
         file.gather_info!
-        file.reload.encoding.should eq(detected_encoding)
+        expect(file.reload.encoding).to eq(detected_encoding)
       end
 
       it "detects the column separator, and persists it" do
         file.gather_info!
-        file.reload.col_sep.should eq(detected_col_sep)
+        expect(file.reload.col_sep).to eq(detected_col_sep)
       end
 
       it "stores the total count, and persists it" do
         file.gather_info!
-        file.reload.total_count.should eq(total_count)
+        expect(file.reload.total_count).to eq(total_count)
       end
 
       it "stores the headers, and persists it" do
         file.gather_info!
-        file.reload.headers.should eq(headers)
+        expect(file.reload.headers).to eq(headers)
       end
 
       it "stores a sample data with 3 rows data, and persists it" do
         file.gather_info!
-        file.reload.sample_data.should eq([row.fields, row.fields, row.fields])
+        expect(file.reload.sample_data).to eq([row.fields, row.fields, row.fields])
       end
     end
   end
@@ -211,7 +211,7 @@ describe Massive::File do
         file.total_count = 3000
       end
 
-      its(:has_info?) { should be_true }
+      its(:has_info?) { is_expected.to be_truthy }
     end
 
     context "when file has not gathered info" do
@@ -221,7 +221,7 @@ describe Massive::File do
         file.total_count = nil
       end
 
-      its(:has_info?) { should be_false }
+      its(:has_info?) { is_expected.to be_falsy }
     end
   end
 end

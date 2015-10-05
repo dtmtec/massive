@@ -5,40 +5,40 @@ describe Massive::ProcessSerializer do
   subject(:serialized) { described_class.new(process).as_json(root: false) }
 
   it "serializes process id as string" do
-    serialized[:id].should eq(process.id.to_s)
+    expect(serialized[:id]).to eq(process.id.to_s)
   end
 
   [:created_at, :updated_at].each do |field|
     it "serializes the #{field}" do
       process[field] = 1.minute.ago
-      serialized[field].should eq(process[field])
+      expect(serialized[field]).to eq(process[field])
     end
   end
 
   it "serializes the processed percentage" do
-    process.stub(:processed_percentage).and_return(12)
-    serialized[:processed_percentage].should eq(process.processed_percentage)
+    allow(process).to receive(:processed_percentage).and_return(12)
+    expect(serialized[:processed_percentage]).to eq(process.processed_percentage)
   end
 
   context "when it is completed" do
-    before { process.stub(:completed?).and_return(true) }
+    before { allow(process).to receive(:completed?).and_return(true) }
 
     it "serializes completed" do
-      serialized[:completed].should be_true
+      expect(serialized[:completed]).to be_truthy
     end
   end
 
   context "when it is not completed" do
-    before { process.stub(:completed?).and_return(false) }
+    before { allow(process).to receive(:completed?).and_return(false) }
 
     it "serializes completed" do
-      serialized[:completed].should be_false
+      expect(serialized[:completed]).to be_falsy
     end
   end
 
   context "when it does not respond to file" do
     it "does not serializes file" do
-      serialized[:file].should be_blank
+      expect(serialized[:file]).to be_blank
     end
   end
 
@@ -46,7 +46,7 @@ describe Massive::ProcessSerializer do
     let(:process) { Massive::FileProcess.new }
 
     it "serializes file" do
-      serialized[:file].should be_present
+      expect(serialized[:file]).to be_present
     end
   end
 end

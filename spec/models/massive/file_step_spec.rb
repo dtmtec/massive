@@ -5,7 +5,7 @@ describe Massive::FileStep do
   subject(:step) { Massive::FileStep.new process: process }
 
   it "delegates file to process" do
-    step.file.should eq(process.file)
+    expect(step.file).to eq(process.file)
   end
 
   context "when it is started!" do
@@ -16,7 +16,7 @@ describe Massive::FileStep do
 
     it "calculates the total count, using the processor total count" do
       step.start!
-      step.total_count.should eq(total_count)
+      expect(step.total_count).to eq(total_count)
     end
   end
 end

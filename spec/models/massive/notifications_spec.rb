@@ -1,7 +1,7 @@
 require 'spec_helper'
 
 shared_examples_for Massive::Notifications do
-  its(:notifier_id) { should eq("#{described_class.name.underscore.gsub('/', '-')}-#{notifyable.id}") }
+  its(:notifier_id) { is_expected.to eq("#{described_class.name.underscore.gsub('/', '-')}-#{notifyable.id}") }
 
   after do
     described_class.notifier(:base, {}) # resetting notifier
@@ -12,21 +12,21 @@ shared_examples_for Massive::Notifications do
     let(:serializer) { notifyable.active_model_serializer.new(notifyable) }
 
     it "notifies the message" do
-      notifyable.notifier.should_receive(:notify).with(message)
+      expect(notifyable.notifier).to receive(:notify).with(message)
       notifyable.notify(message)
     end
 
     it "sends a serialized version of itself, after reloading itself, as data" do
       notifyable.save
       notifyable.notify(message)
-      notifyable.notifier.last[:data].as_json.should eq(serializer.as_json)
+      expect(notifyable.notifier.last[:data].as_json).to eq(serializer.as_json)
     end
 
     context "when there is no serializer for the step" do
-      before { notifyable.stub(:active_model_serializer).and_return(nil) }
+      before { allow(notifyable).to receive(:active_model_serializer).and_return(nil) }
 
       it "does not sends the notification" do
-        notifyable.notifier.should_not_receive(:notify)
+        expect(notifyable.notifier).to_not receive(:notify)
         notifyable.notify(message)
       end
     end
@@ -36,16 +36,16 @@ shared_examples_for Massive::Notifications do
     let(:options) { { expiration: 200, foo: 'bar', other: 'yup' } }
 
     it "returns an instance of the notifier" do
-      notifyable.notifier.should be_a(Massive::Notifiers::Base)
+      expect(notifyable.notifier).to be_a(Massive::Notifiers::Base)
     end
 
     it "passes notifier options when creating the notifier" do
       described_class.notifier :base, options
-      notifyable.notifier.options.should eq(options)
+      expect(notifyable.notifier.options).to eq(options)
     end
 
     it "creates it with the notifier_id" do
-      notifyable.notifier.id.should eq(notifyable.notifier_id)
+      expect(notifyable.notifier.id).to eq(notifyable.notifier_id)
     end
   end
 
@@ -54,7 +54,7 @@ shared_examples_for Massive::Notifications do
       context "as a symbol" do
         it "returns a notifier class from Massive::Notifiers::<given_symbol.camelized>" do
           described_class.notifier :pusher
-          described_class.notifier_class.should eq(Massive::Notifiers::Pusher)
+          expect(described_class.notifier_class).to eq(Massive::Notifiers::Pusher)
         end
 
         context "and others parameters are given" do
@@ -62,7 +62,7 @@ shared_examples_for Massive::Notifications do
 
           it "store these parameters to be used when creating the notifier" do
             described_class.notifier :pusher, options
-            described_class.notifier_options.should eq(options)
+            expect(described_class.notifier_options).to eq(options)
           end
         end
       end
@@ -70,7 +70,7 @@ shared_examples_for Massive::Notifications do
       context "as a Class" do
         it "configures the notifier, using the symbol to get the class" do
           described_class.notifier(Massive::Notifiers::Pusher)
-          described_class.notifier_class.should eq(Massive::Notifiers::Pusher)
+          expect(described_class.notifier_class).to eq(Massive::Notifiers::Pusher)
         end
 
         context "and others parameters are given" do
@@ -78,7 +78,7 @@ shared_examples_for Massive::Notifications do
 
           it "passes these parameters when creating the notifier" do
             described_class.notifier(Massive::Notifiers::Pusher, options)
-            described_class.notifier_options.should eq(options)
+            expect(described_class.notifier_options).to eq(options)
           end
         end
       end
@@ -101,7 +101,7 @@ describe Massive::Job do
   let(:message) { 'some message' }
 
   it "delegates #notify to the step" do
-    step.should_receive(:notify).with(message)
+    expect(step).to receive(:notify).with(message)
     job.notify(message)
   end
 end

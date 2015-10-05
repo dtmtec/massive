@@ -7,22 +7,22 @@ describe Massive::Step do
   let(:process) { Massive::Process.new }
   subject(:step) { process.steps.build }
 
-  before { step.stub(:process).and_return(process) }
+  before { allow(step).to receive(:process).and_return(process) }
 
   describe ".perform" do
     before do
-      Massive::Process.stub(:find_step).with(process.id, step.id).and_return(step)
+      allow(Massive::Process).to receive(:find_step).with(process.id, step.id).and_return(step)
     end
 
     it "finds the step and calls work on it" do
-      step.should_receive(:work)
+      expect(step).to receive(:work)
       Massive::Step.perform(process.id, step.id)
     end
   end
 
   describe ".queue" do
-    it "should be massive_step" do
-      Massive::Step.queue.should eq(:massive_step)
+    it "should be a massive_step" do
+      expect(Massive::Step.queue).to eq(:massive_step)
     end
   end
 
@@ -30,25 +30,25 @@ describe Massive::Step do
     after { Massive::Step.calculates_total_count_with { 0 } }
 
     it "defaults to return 0" do
-      step.calculate_total_count.should be_zero
+      expect(step.calculate_total_count).to be_zero
     end
 
     it "defines the calculate_total_count method, which returns the returned value of the given block" do
       Massive::Step.calculates_total_count_with { 1234 }
-      Massive::Step.new.calculate_total_count.should eq(1234)
+      expect(Massive::Step.new.calculate_total_count).to eq(1234)
     end
   end
 
   describe "#enqueue" do
-    before { step.stub(:reload).and_return(step) }
+    before { allow(step).to receive(:reload).and_return(step) }
 
     it "enqueues itself, passing ids as strings" do
-      Resque.should_receive(:enqueue).with(step.class, step.process.id.to_s, step.id.to_s)
+      expect(Resque).to receive(:enqueue).with(step.class, step.process.id.to_s, step.id.to_s)
       step.enqueue
     end
 
     it "sends a :enqueued notification" do
-      step.should_receive(:notify).with(:enqueued)
+      expect(step).to receive(:notify).with(:enqueued)
       step.enqueue
     end
 
@@ -57,7 +57,7 @@ describe Massive::Step do
       before { process.steps << step }
 
       it "enqueues itself, passing ids as strings" do
-        Resque.should_receive(:enqueue).with(step.class, step.process.id.to_s, step.id.to_s)
+        expect(Resque).to receive(:enqueue).with(step.class, step.process.id.to_s, step.id.to_s)
         step.enqueue
       end
     end
@@ -66,18 +66,18 @@ describe Massive::Step do
   describe "#start!" do
     it "persists the total_count" do
       step.start!
-      step.reload.total_count.should be_present
+      expect(step.reload.total_count).to be_present
     end
 
     it "sends a :start notification" do
-      step.should_receive(:notify).with(:start)
+      expect(step).to receive(:notify).with(:start)
       step.start!
     end
 
     context "when total_count is not defined" do
       it "updates it to zero" do
         step.start!
-        step.total_count.should be_zero
+        expect(step.total_count).to be_zero
       end
     end
 
@@ -96,7 +96,7 @@ describe Massive::Step do
       context "and the total_count is not defined" do
         it "updates it to the return value of calculate_total_count" do
           step.start!
-          step.total_count.should eq(step.send(:calculate_total_count))
+          expect(step.total_count).to eq(step.send(:calculate_total_count))
         end
       end
 
@@ -122,16 +122,16 @@ describe Massive::Step do
 
   describe "#work" do
     it "starts the step, then process it" do
-      step.should_receive(:start!) do
-        step.should_receive(:process_step)
+      expect(step).to receive(:start!) do
+        expect(step).to receive(:process_step)
       end
 
       step.work
     end
 
     it "calls complete after processing step" do
-      step.should_receive(:process_step) do
-        step.should_receive(:complete)
+      expect(step).to receive(:process_step) do
+        expect(step).to receive(:complete)
       end
 
       step.work
@@ -141,7 +141,7 @@ describe Massive::Step do
   describe "jobs completion" do
     context "when it is not persisted" do
       it "does not reloads itself" do
-        step.should_not_receive(:reload)
+        expect(step).to_not receive(:reload)
         step.completed_all_jobs?
       end
     end
@@ -150,77 +150,77 @@ describe Massive::Step do
       before { step.save }
 
       it "reloads itself, so that it can get the latest information" do
-        step.should_receive(:reload).and_return(step)
+        expect(step).to receive(:reload).and_return(step)
         step.completed_all_jobs?
       end
     end
 
     context "when there are no jobs" do
-      it { should be_completed_all_jobs }
+      it { is_expected.to be_completed_all_jobs }
     end
 
     context "when there are jobs" do
       let!(:jobs) { step.jobs = 3.times.map { |i| Massive::Job.new } }
 
       before do
-        jobs.each { |job| job.stub(:completed?).and_return(true) }
+        jobs.each { |job| allow(job).to receive(:completed?).and_return(true) }
       end
 
       context "but there is at least one that is not completed" do
         before do
-          jobs.each { |job| job.stub(:completed?).and_return(true) }
+          jobs.each { |job| allow(job).to receive(:completed?).and_return(true) }
 
-          jobs.last.stub(:completed?).and_return(false)
+          allow(jobs.last).to receive(:completed?).and_return(false)
         end
 
-        it { should_not be_completed_all_jobs }
+        it { is_expected.to_not be_completed_all_jobs }
       end
 
       context "and all jobs are completed" do
         before do
-          jobs.each { |job| job.stub(:completed?).and_return(true) }
+          jobs.each { |job| allow(job).to receive(:completed?).and_return(true) }
         end
 
-        it { should be_completed_all_jobs }
+        it { is_expected.to be_completed_all_jobs }
       end
     end
   end
 
   describe "#complete" do
     context "when there is at least one job that is not completed" do
-      before { step.stub(:completed_all_jobs?).and_return(false) }
+      before { allow(step).to receive(:completed_all_jobs?).and_return(false) }
 
       it "does not updates the finished_at" do
         step.complete
-        step.finished_at.should be_nil
+        expect(step.finished_at).to be_nil
       end
 
       it "does not updates the memory_consumption" do
         step.complete
-        step.memory_consumption.should be_zero
+        expect(step.memory_consumption).to be_zero
       end
 
       it "does not persists the step" do
-        step.should_not be_persisted
+ is_expected.to_not be_persisted
       end
 
       it "does not send a :complete notification" do
-        step.should_not_receive(:notify).with(:complete)
+        expect(step).to_not receive(:notify).with(:complete)
         step.complete
       end
 
-      context "when it should not execute next after completion" do
+      context "when it is_expected.to not execute next after completion" do
         it "does not enqueues next step of process" do
-          process.should_not_receive(:enqueue_next)
+          expect(process).to_not receive(:enqueue_next)
           step.complete
         end
       end
 
-      context "when it should execute next after completion" do
+      context "when it is_expected.to execute next after completion" do
         before { step.execute_next = true }
 
         it "does not enqueues next step of process" do
-          process.should_not_receive(:enqueue_next)
+          expect(process).to_not receive(:enqueue_next)
           step.complete
         end
       end
@@ -231,7 +231,7 @@ describe Massive::Step do
 
       let(:redis) { Resque.redis }
 
-      before { step.stub(:completed_all_jobs?).and_return(true) }
+      before { allow(step).to receive(:completed_all_jobs?).and_return(true) }
 
       context "but there is a complete lock for this step" do
         before do
@@ -240,35 +240,35 @@ describe Massive::Step do
 
         it "does not updates the finished_at" do
           step.complete
-          step.finished_at.should be_nil
+          expect(step.finished_at).to be_nil
         end
 
         it "does not updates the memory_consumption" do
           step.complete
-          step.memory_consumption.should be_zero
+          expect(step.memory_consumption).to be_zero
         end
 
         it "does not persists the step" do
-          step.should_not be_persisted
+ is_expected.to_not be_persisted
         end
 
         it "does not send a :complete notification" do
-          step.should_not_receive(:notify).with(:complete)
+          expect(step).to_not receive(:notify).with(:complete)
           step.complete
         end
 
-        context "when it should not execute next after completion" do
+        context "when it is_expected.to not execute next after completion" do
           it "does not enqueues next step of process" do
-            process.should_not_receive(:enqueue_next)
+            expect(process).to_not receive(:enqueue_next)
             step.complete
           end
         end
 
-        context "when it should execute next after completion" do
+        context "when it is_expected.to execute next after completion" do
           before { step.execute_next = true }
 
           it "does not enqueues next step of process" do
-            process.should_not_receive(:enqueue_next)
+            expect(process).to_not receive(:enqueue_next)
             step.complete
           end
         end
@@ -277,31 +277,31 @@ describe Massive::Step do
       context "but there is no complete lock for this step" do
         it "updates the finished_at with the current time, persisting it" do
           step.complete
-          step.reload.finished_at.to_i.should eq(now.to_i)
+          expect(step.reload.finished_at.to_i).to eq(now.to_i)
         end
 
         it "updates the memory_consumption, persisting it" do
           step.complete
-          step.reload.memory_consumption.should eq(current_memory_consumption)
+          expect(step.reload.memory_consumption).to eq(current_memory_consumption)
         end
 
         it "sends a :complete notification" do
-          step.should_receive(:notify).with(:complete)
+          expect(step).to receive(:notify).with(:complete)
           step.complete
         end
 
-        context "when it should not execute next after completion" do
+        context "when it is_expected.to not execute next after completion" do
           it "does not enqueues next step of process" do
-            process.should_not_receive(:enqueue_next)
+            expect(process).to_not receive(:enqueue_next)
             step.complete
           end
         end
 
-        context "when it should execute next after completion" do
+        context "when it is_expected.to execute next after completion" do
           before { step.execute_next = true }
 
           it "enqueues next step of process" do
-            process.should_receive(:enqueue_next)
+            expect(process).to receive(:enqueue_next)
             step.complete
           end
         end
@@ -315,7 +315,7 @@ describe Massive::Step do
 
       it "creates no jobs" do
         step.process_step
-        step.jobs.should be_empty
+        expect(step.jobs).to be_empty
       end
     end
 
@@ -327,15 +327,15 @@ describe Massive::Step do
       it "creates 20 jobs, each processing 100 items" do
         step.process_step
         step.jobs.each_with_index do |job, index|
-          job.limit.should eq(limit)
-          job.offset.should eq(index * limit)
+          expect(job.limit).to eq(limit)
+          expect(job.offset).to eq(index * limit)
         end
       end
 
       it "creates jobs of the Massive::Job class" do
         step.process_step
         step.jobs.each do |job|
-          job.should be_an_instance_of(Massive::Job)
+          expect(job).to be_an_instance_of(Massive::Job)
         end
       end
 
@@ -347,15 +347,15 @@ describe Massive::Step do
         it "follows redefined limit_ratio, creating 2 jobs, each processing 1000 items" do
           step.process_step
           step.jobs.each_with_index do |job, index|
-            job.limit.should eq(limit)
-            job.offset.should eq(index * limit)
+            expect(job.limit).to eq(limit)
+            expect(job.offset).to eq(index * limit)
           end
         end
 
         it "creates jobs of the redefined job_class" do
           step.process_step
           step.jobs.each do |job|
-            job.should be_an_instance_of(CustomJob)
+            expect(job).to be_an_instance_of(CustomJob)
           end
         end
       end
@@ -367,15 +367,15 @@ describe Massive::Step do
         it "follows redefined limit_ratio, creating 2 jobs, each processing 1000 items" do
           step.process_step
           step.jobs.each_with_index do |job, index|
-            job.limit.should eq(limit)
-            job.offset.should eq(index * limit)
+            expect(job.limit).to eq(limit)
+            expect(job.offset).to eq(index * limit)
           end
         end
 
         it "creates jobs of the Massive::Job" do
           step.process_step
           step.jobs.each do |job|
-            job.should be_an_instance_of(Massive::Job)
+            expect(job).to be_an_instance_of(Massive::Job)
           end
         end
       end
@@ -389,8 +389,8 @@ describe Massive::Step do
       it "creates 3 jobs, each processing 1000 items" do
         step.process_step
         step.jobs.each_with_index do |job, index|
-          job.limit.should eq(limit)
-          job.offset.should eq(index * limit)
+          expect(job.limit).to eq(limit)
+          expect(job.offset).to eq(index * limit)
         end
       end
 
@@ -402,15 +402,15 @@ describe Massive::Step do
         it "follows redefined limit_ratio, creating 2 jobs, each processing 1000 items" do
           step.process_step
           step.jobs.each_with_index do |job, index|
-            job.limit.should eq(limit)
-            job.offset.should eq(index * limit)
+            expect(job.limit).to eq(limit)
+            expect(job.offset).to eq(index * limit)
           end
         end
 
         it "creates jobs of the redefined job_class" do
           step.process_step
           step.jobs.each do |job|
-            job.should be_an_instance_of(CustomJob)
+            expect(job).to be_an_instance_of(CustomJob)
           end
         end
       end
@@ -422,15 +422,15 @@ describe Massive::Step do
         it "follows redefined limit_ratio, creating 2 jobs, each processing 1000 items" do
           step.process_step
           step.jobs.each_with_index do |job, index|
-            job.limit.should eq(limit)
-            job.offset.should eq(index * limit)
+            expect(job.limit).to eq(limit)
+            expect(job.offset).to eq(index * limit)
           end
         end
 
         it "creates jobs of the Massive::Job" do
           step.process_step
           step.jobs.each do |job|
-            job.should be_an_instance_of(Massive::Job)
+            expect(job).to be_an_instance_of(Massive::Job)
           end
         end
       end
@@ -439,38 +439,38 @@ describe Massive::Step do
 
   describe "processed items and time" do
     context "when the step has no jobs" do
-      its(:processed)            { should be_zero }
-      its(:processed_percentage) { should be_zero }
-      its(:processing_time)      { should be_zero }
+      its(:processed)            { is_expected.to be_zero }
+      its(:processed_percentage) { is_expected.to be_zero }
+      its(:processing_time)      { is_expected.to be_zero }
     end
 
     context "when the step has jobs with processed itens" do
       let!(:jobs) { step.jobs = 3.times.map { |i| Massive::Job.new(processed: 100 * i) } }
       let(:total_processed) { jobs.map(&:processed).sum }
 
-      its(:processed) { should eq(total_processed) }
+      its(:processed) { is_expected.to eq(total_processed) }
 
       context "and the total count is zero" do
-        its(:processed_percentage) { should be_zero }
+        its(:processed_percentage) { is_expected.to be_zero }
       end
 
       context "and the total count is greater than zero" do
         before { step.total_count = 1000 }
 
-        its(:processed_percentage) { should eq(total_processed.to_f / step.total_count) }
+        its(:processed_percentage) { is_expected.to eq(total_processed.to_f / step.total_count) }
       end
     end
 
     context "when the step has jobs that have some elapsed time" do
       let!(:jobs) do
         step.jobs = 3.times.map do |i|
-          Massive::Job.new.tap { |j| j.stub(:elapsed_time).and_return(100 * i) }
+          Massive::Job.new.tap { |j| allow(j).to receive(:elapsed_time).and_return(100 * i) }
         end
       end
 
       let(:total_elapsed_time) { jobs.map(&:elapsed_time).sum }
 
-      its(:processing_time) { should eq(total_elapsed_time) }
+      its(:processing_time) { is_expected.to eq(total_elapsed_time) }
     end
   end
 
@@ -479,12 +479,12 @@ describe Massive::Step do
     before { process.steps << step }
 
     it "properly sets the _type" do
-      step._type.should be_present
+      expect(step._type).to be_present
     end
   end
 
   describe "#active_model_serializer" do
-    its(:active_model_serializer) { should eq Massive::StepSerializer }
+    its(:active_model_serializer) { is_expected.to eq Massive::StepSerializer }
 
     context "when class inherits from Massive::Step and does not have a serializer" do
       class TestStep < Massive::Step
@@ -492,7 +492,7 @@ describe Massive::Step do
 
       it "returns Massive::StepSerializer" do
         process = TestStep.new
-        process.active_model_serializer.should eq Massive::StepSerializer
+        expect(process.active_model_serializer).to eq Massive::StepSerializer
       end
     end
   end

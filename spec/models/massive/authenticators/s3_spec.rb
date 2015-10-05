@@ -21,7 +21,7 @@ describe Massive::Authenticators::S3 do
     before do
       Massive.storage_config[:key] = 'some-key'
       Massive.storage_config[:secret] = 'some-secret'
-      Time.stub(:now).and_return(Time.parse("2014-05-15T13:25:45Z"))
+      allow(Time).to receive(:now).and_return(Time.parse("2014-05-15T13:25:45Z"))
     end
 
     def parsed_query(url)
@@ -41,7 +41,7 @@ describe Massive::Authenticators::S3 do
     end
 
     it "returns a url with the expiration as a query string parameter using a timestamped format" do
-      now = Time.now.tap { |now| Time.stub(:now).and_return(now) }
+      now = Time.now.tap { |now| allow(Time).to receive(:now).and_return(now) }
 
       expect(parsed_query(authenticator.url)[:Expires].first.to_i).to eq(now.to_i + Massive.storage_config[:expiration])
     end
@@ -56,7 +56,7 @@ describe Massive::Authenticators::S3 do
 
     context "when changing the expiration" do
       before do
-        Time.stub(:now).and_return(Time.parse("2009-08-01T20:03:27Z"))
+        allow(Time).to receive(:now).and_return(Time.parse("2009-08-01T20:03:27Z"))
       end
 
       it "returns a url with the Signature properly signing based on the current time" do
@@ -90,7 +90,7 @@ describe Massive::Authenticators::S3 do
       end
 
       it "returns a url with the expiration as a query string parameter using a timestamped format" do
-        now = Time.now.tap { |now| Time.stub(:now).and_return(now) }
+        now = Time.now.tap { |now| allow(Time).to receive(:now).and_return(now) }
 
         expect(parsed_query(authenticator.url)[:Expires].first.to_i).to eq(now.to_i + Massive.storage_config[:expiration])
       end

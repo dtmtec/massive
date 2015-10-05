@@ -7,34 +7,34 @@ describe Massive::FileSerializer do
   subject(:serialized) { described_class.new(file).as_json(root: false) }
 
   it "serializes file id as string" do
-    serialized[:id].should eq(file.id.to_s)
+    expect(serialized[:id]).to eq(file.id.to_s)
   end
 
   it "serializes url" do
-    serialized[:url].should eq(file.url)
+    expect(serialized[:url]).to eq(file.url)
   end
 
   it "serializes encoding" do
-    serialized[:encoding].should eq(file.encoding)
+    expect(serialized[:encoding]).to eq(file.encoding)
   end
 
   it "serializes col_sep" do
-    serialized[:col_sep].should eq(file.col_sep)
+    expect(serialized[:col_sep]).to eq(file.col_sep)
   end
 
   it "serializes total_count" do
-    serialized[:total_count].should eq(file.total_count)
+    expect(serialized[:total_count]).to eq(file.total_count)
   end
 
   it "serializes use_headers" do
-    serialized[:use_headers].should eq(file.use_headers)
+    expect(serialized[:use_headers]).to eq(file.use_headers)
   end
 
   it "serializes headers" do
-    serialized[:headers].should eq(file.headers)
+    expect(serialized[:headers]).to eq(file.headers)
   end
 
   it "serializes sample_data" do
-    serialized[:sample_data].should eq(file.sample_data)
+    expect(serialized[:sample_data]).to eq(file.sample_data)
   end
 end

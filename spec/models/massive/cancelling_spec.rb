@@ -34,12 +34,12 @@ describe Massive::Cancelling do
   context "when it is never cancelled" do
     it "does not cancel the work" do
       cancellable.work { |cancellable| }
-      cancellable.work_done_count.should eq(cancellable.work_count)
+      expect(cancellable.work_done_count).to eq(cancellable.work_count)
     end
 
     it "does not raises a cancelled exception" do
       cancellable.work { |cancellable| }
-      cancellable.cancelled_exception.should be_nil
+      expect(cancellable.cancelled_exception).to be_nil
     end
   end
 
@@ -48,36 +48,36 @@ describe Massive::Cancelling do
 
     it "cancels the work before the first iteration" do
       cancellable.work { |cancellable|  }
-      cancellable.work_done_count.should eq(0)
+      expect(cancellable.work_done_count).to eq(0)
     end
 
     it "raises a cancelled exception" do
       cancellable.work { |cancellable| }
-      cancellable.cancelled_exception.should be_present
+      expect(cancellable.cancelled_exception).to be_present
     end
   end
 
   context "when it is cancelled while performing some work" do
     it "cancels the work before performing the iteration" do
       cancellable.work { |cancellable, iteration| cancellable.cancelled = (iteration == work_count - 2) }
-      cancellable.work_done_count.should eq(2)
+      expect(cancellable.work_done_count).to eq(2)
     end
 
     it "raises a cancelled exception" do
       cancellable.work { |cancellable, iteration| cancellable.cancelled = (iteration == work_count - 2) }
-      cancellable.cancelled_exception.should be_present
+      expect(cancellable.cancelled_exception).to be_present
     end
   end
 
   context "when it is cancelled while performing the last iteration" do
     it "performs all the work" do
       cancellable.work { |cancellable, iteration| cancellable.cancelled = (iteration == work_count - 1) }
-      cancellable.work_done_count.should eq(work_count)
+      expect(cancellable.work_done_count).to eq(work_count)
     end
 
     it "does not raise a cancelled exception" do
       cancellable.work { |cancellable, iteration| cancellable.cancelled = (iteration == work_count - 1) }
-      cancellable.cancelled_exception.should be_nil
+      expect(cancellable.cancelled_exception).to be_nil
     end
   end
 end

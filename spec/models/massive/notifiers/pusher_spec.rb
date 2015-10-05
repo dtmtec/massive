@@ -8,7 +8,7 @@ describe Massive::Notifiers::Pusher do
 
   it_should_behave_like Massive::Locking
 
-  it { should be_a(Massive::Notifiers::Base) }
+  it { is_expected.to be_a(Massive::Notifiers::Base) }
 
   describe "#notify(message, data)" do
     let(:redis) { Resque.redis }
@@ -18,13 +18,13 @@ describe Massive::Notifiers::Pusher do
 
     context "when a notification for this message is not locked" do
       it "sends a notification" do
-        client.should_receive(:trigger).with(id, message, data)
+        expect(client).to receive(:trigger).with(id, message, data)
         notifier.notify(message, data)
       end
 
       context "when a block is given" do
         it "sends a notification with the data being the return from the block" do
-          client.should_receive(:trigger).with(id, message, data)
+          expect(client).to receive(:trigger).with(id, message, data)
           notifier.notify(message) { data }
         end
       end
@@ -35,7 +35,7 @@ describe Massive::Notifiers::Pusher do
       before { redis.set(lock_key, 60) }
 
       it "does not send a notification" do
-        client.should_not_receive(:trigger)
+        expect(client).to_not receive(:trigger)
         notifier.notify(message, data)
       end
 

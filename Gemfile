@@ -5,7 +5,7 @@ gemspec
 gem 'rake'
 
 group(:development) do
-  gem 'debugger'
+  gem 'byebug'
   gem 'guard-rspec', require: false
   gem 'terminal-notifier-guard'
 end
@@ -13,5 +13,6 @@ end
 group(:test) do
   gem 'simplecov', require: false
   gem 'rspec'
+  gem 'rspec-its'
   gem 'database_cleaner'
 end

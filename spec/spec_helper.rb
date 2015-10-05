@@ -11,7 +11,7 @@ ENV['RACK_ENV'] ||= 'test'
 Bundler.require :default, ENV['RACK_ENV']
 
 begin
-  require 'debugger'
+  require 'byebug'
 rescue LoadError
 end
 
@@ -23,7 +23,6 @@ Dir["#{root}/spec/shared/**/*.rb"].each   { |f| require f }
 Dir["#{root}/spec/fixtures/**/*.rb"].each { |f| require f }
 
 RSpec.configure do |config|
-  config.treat_symbols_as_metadata_keys_with_true_values = true
   config.run_all_when_everything_filtered = true
   config.filter_run :focus
 
@@ -34,7 +33,8 @@ RSpec.configure do |config|
   # config.order = 'random'
 
   config.before do
-    DatabaseCleaner.clean_with(:truncation)
+    # DatabaseCleaner.orm = :mongoid
+    DatabaseCleaner.clean_with('truncation')
   end
 
   config.before { Massive.redis.flushdb }

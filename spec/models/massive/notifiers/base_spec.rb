@@ -15,15 +15,15 @@ describe Massive::Notifiers::Base do
     context "when a notification for this message is not locked" do
       it "sends a notification" do
         notifier.notify(message, data)
-        notifier.last[:message].should eq(message)
-        notifier.last[:data].should eq(data)
+        expect(notifier.last[:message]).to eq(message)
+        expect(notifier.last[:data]).to eq(data)
       end
 
       context "when a block is given" do
         it "sends a notification with the data being the return from the block" do
           notifier.notify(message) { data }
-          notifier.last[:message].should eq(message)
-          notifier.last[:data].should eq(data)
+          expect(notifier.last[:message]).to eq(message)
+          expect(notifier.last[:data]).to eq(data)
         end
       end
     end
@@ -34,8 +34,8 @@ describe Massive::Notifiers::Base do
 
       it "does not send a notification" do
         notifier.notify(message, data)
-        notifier.last[:message].should be_nil
-        notifier.last[:data].should be_nil
+        expect(notifier.last[:message]).to be_nil
+        expect(notifier.last[:data]).to be_nil
       end
 
       context "when a block is given" do
