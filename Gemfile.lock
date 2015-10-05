@@ -3,7 +3,7 @@ PATH
   specs:
     massive (0.4.0)
       active_model_serializers (~> 0.8.0)
-      file_processor (= 0.2.0)
+      file_processor (>= 0.3.0)
       mongoid (~> 4.0.0)
       resque
 
@@ -30,7 +30,7 @@ GEM
     diff-lcs (1.2.5)
     docile (1.1.5)
     ffi (1.9.10)
-    file_processor (0.2.0)
+    file_processor (0.3.0)
     formatador (0.2.5)
     guard (2.13.0)
       formatador (>= 0.2.4)
