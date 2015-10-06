@@ -27,6 +27,7 @@ module Massive
   autoload :FileSerializer,    'massive/file_serializer'
 
   module Authenticators
+    autoload :Filesystem,      'massive/authenticators/filesystem'
     autoload :S3,              'massive/authenticators/s3'
   end
 
@@ -59,7 +60,7 @@ module Massive
 
   self.storage_config = {
     directory: 'massive',
-    provider: Massive::Authenticators::S3,
+    provider: Massive::Authenticators::Filesystem,
     key: nil,
     secret: nil,
     expiration: 1 * 60 * 60 # 1 hour

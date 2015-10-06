@@ -9,7 +9,7 @@ describe Massive::Authenticators::S3 do
   before { allow(Time).to receive(:now).and_return(now) }
 
   before do
-    # resetting storage config to the default one
+    # resetting storage config to the default one, using S3 as provider
     Massive.storage_config = {
       directory: 'massive',
       provider: Massive::Authenticators::S3,
