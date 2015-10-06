@@ -188,7 +188,7 @@ describe Massive::Step do
       end
 
       it "does not persists the step" do
- is_expected.to_not be_persisted
+        expect(step).to_not be_persisted
       end
 
       it "does not send a :complete notification" do
@@ -236,7 +236,7 @@ describe Massive::Step do
         end
 
         it "does not persists the step" do
- is_expected.to_not be_persisted
+          expect(step).to_not be_persisted
         end
 
         it "does not send a :complete notification" do
@@ -297,6 +297,32 @@ describe Massive::Step do
   end
 
   context "#process_step" do
+    context "when total_count is not defined" do
+      it "creates no jobs" do
+        step.process_step
+        expect(step.jobs).to be_empty
+      end
+
+      context "on custom step class" do
+        subject(:step) { CustomStep.new }
+        before { process.steps << step }
+
+        it "creates jobs based on the calculated total_count, following the limit ratio" do
+          step.process_step
+          expect(step.jobs.size).to eq(1)
+        end
+
+        context "that has calculates total count, but evaluating to nil" do
+          subject(:step) { CustomStepWithNilTotalCount.new }
+
+          it "creates no jobs" do
+            step.process_step
+            expect(step.jobs).to be_empty
+          end
+        end
+      end
+    end
+
     context "when total_count is zero" do
       before { step.total_count = 0 }
 

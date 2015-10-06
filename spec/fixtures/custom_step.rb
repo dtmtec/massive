@@ -17,3 +17,7 @@ end
 
 class InheritedStep < Massive::Step
 end
+
+class CustomStepWithNilTotalCount < Massive::Step
+  calculates_total_count_with { nil }
+end

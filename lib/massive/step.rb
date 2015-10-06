@@ -105,7 +105,7 @@ module Massive
     end
 
     def limit
-      @limit ||= self.class.limit_ratio.find { |count, l| total_count >= count }.last
+      @limit ||= self.class.limit_ratio.find { |count, l| (total_count || calculate_total_count || 0) >= count }.last
     end
 
     def calculate_total_count
@@ -127,7 +127,7 @@ module Massive
     end
 
     def number_of_jobs
-      (total_count.to_f / limit).ceil
+      ((total_count || calculate_total_count || 0).to_f / limit).ceil
     end
 
     def attributes_to_reset
