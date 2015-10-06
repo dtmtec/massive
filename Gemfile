@@ -14,5 +14,5 @@ group(:test) do
   gem 'simplecov', require: false
   gem 'rspec'
   gem 'rspec-its'
-  gem 'database_cleaner'
+  gem 'database_cleaner', git: 'https://github.com/DatabaseCleaner/database_cleaner'
 end

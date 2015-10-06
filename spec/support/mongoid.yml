@@ -1,12 +1,9 @@
 default_options: &default_options
   raise_not_found_error: false
 
-session_default_options: &session_default_options
-  read: primary
-
 development:
-  # Configure available database sessions. (required)
-  sessions:
+  # Configure available database clients. (required)
+  clients:
     # Defines the default session. (required)
     default:
       # Defines the name of the default database that Mongoid can connect to.
@@ -16,18 +13,14 @@ development:
       # of host:port pairs. (required)
       hosts:
         - localhost:27017
-      options:
-        <<: *session_default_options
   # Configure Mongoid specific options. (optional)
   options:
     <<: *default_options
 test:
-  sessions:
+  clients:
     default:
       database: massive_test
       hosts:
         - localhost:27017
-      options:
-        <<: *session_default_options
   options:
     <<: *default_options

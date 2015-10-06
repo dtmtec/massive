@@ -19,7 +19,7 @@ Gem::Specification.new do |gem|
   gem.add_dependency "activejob"
   gem.add_dependency "redis"
   gem.add_dependency "redis-namespace"
-  gem.add_dependency "mongoid", "~> 4.0.0"
+  gem.add_dependency "mongoid", ">= 4.0.0"
   gem.add_dependency "file_processor", ">= 0.3.0"
   gem.add_dependency "active_model_serializers", "~> 0.8.0"
 end

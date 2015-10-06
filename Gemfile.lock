@@ -1,3 +1,9 @@
+GIT
+  remote: https://github.com/DatabaseCleaner/database_cleaner
+  revision: b87f00320f8aa0f7e499d183128f05ce29cedc33
+  specs:
+    database_cleaner (1.5.1)
+
 PATH
   remote: .
   specs:
@@ -5,7 +11,7 @@ PATH
       active_model_serializers (~> 0.8.0)
       activejob
       file_processor (>= 0.3.0)
-      mongoid (~> 4.0.0)
+      mongoid (>= 4.0.0)
       redis
       redis-namespace
 
@@ -30,8 +36,6 @@ GEM
     builder (3.2.2)
     byebug (6.0.2)
     coderay (1.1.0)
-    connection_pool (2.2.0)
-    database_cleaner (1.4.1)
     diff-lcs (1.2.5)
     docile (1.1.5)
     ffi (1.9.10)
@@ -61,20 +65,17 @@ GEM
     lumberjack (1.0.9)
     method_source (0.8.2)
     minitest (5.8.1)
-    mongoid (4.0.2)
+    mongo (2.1.1)
+      bson (~> 3.0)
+    mongoid (5.0.0)
       activemodel (~> 4.0)
-      moped (~> 2.0.0)
+      mongo (~> 2.1)
       origin (~> 2.1)
       tzinfo (>= 0.3.37)
-    moped (2.0.7)
-      bson (~> 3.0)
-      connection_pool (~> 2.0)
-      optionable (~> 0.2.0)
     nenv (0.2.0)
     notiffany (0.0.8)
       nenv (~> 0.1)
       shellany (~> 0.0)
-    optionable (0.2.0)
     origin (2.1.1)
     pry (0.10.2)
       coderay (~> 1.1.0)
@@ -121,7 +122,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug
-  database_cleaner
+  database_cleaner!
   guard-rspec
   massive!
   rake

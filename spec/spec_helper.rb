@@ -17,6 +17,10 @@ end
 
 root = File.expand_path('../..', __FILE__)
 
+logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('tmp/test.log'))
+Mongo::Logger.logger = logger
+ActiveJob::Base.logger = logger
+
 Mongoid.load!(File.join(root, "spec/support/mongoid.yml"), :test)
 
 Dir["#{root}/spec/shared/**/*.rb"].each   { |f| require f }
@@ -35,7 +39,6 @@ RSpec.configure do |config|
   config.before do
     DatabaseCleaner.clean_with('truncation')
 
-    ActiveJob::Base.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('tmp/test.log'))
     ActiveJob::Base.queue_adapter = :test
   end
 
