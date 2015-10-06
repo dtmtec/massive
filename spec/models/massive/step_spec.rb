@@ -9,17 +9,6 @@ describe Massive::Step do
 
   before { allow(step).to receive(:process).and_return(process) }
 
-  describe ".perform" do
-    before do
-      allow(Massive::Process).to receive(:find_step).with(process.id, step.id).and_return(step)
-    end
-
-    it "finds the step and calls work on it" do
-      expect(step).to receive(:work)
-      Massive::Step.perform(process.id, step.id)
-    end
-  end
-
   describe ".queue" do
     it "should be a massive_step" do
       expect(Massive::Step.queue).to eq(:massive_step)
@@ -40,26 +29,24 @@ describe Massive::Step do
   end
 
   describe "#enqueue" do
-    before { allow(step).to receive(:reload).and_return(step) }
+    before { step.save }
 
-    it "enqueues itself, passing ids as strings" do
-      expect(Resque).to receive(:enqueue).with(step.class, step.process.id.to_s, step.id.to_s)
+    let(:configured_job) { double(ActiveJob::ConfiguredJob) }
+
+    it "enqueues a worker, passing step id as string, and setting the queue based on class queue" do
+      expect(Massive::Worker).to receive(:set).with(queue: step.class.queue).and_return(configured_job)
+      expect(configured_job).to receive(:perform_later).with(step.id.to_s)
       step.enqueue
+    end
+
+    it "marks the step as enqueued" do
+      step.enqueue
+      expect(step.reload.enqueued_at).to_not be_nil
     end
 
     it "sends a :enqueued notification" do
       expect(step).to receive(:notify).with(:enqueued)
       step.enqueue
-    end
-
-    context "when a subclass redefines calculate_total_count" do
-      subject(:step) { CustomStep.new }
-      before { process.steps << step }
-
-      it "enqueues itself, passing ids as strings" do
-        expect(Resque).to receive(:enqueue).with(step.class, step.process.id.to_s, step.id.to_s)
-        step.enqueue
-      end
     end
   end
 
@@ -229,7 +216,7 @@ describe Massive::Step do
     context "when all jobs are completed" do
       let(:lock_key) { step.send(:lock_key_for, :complete) }
 
-      let(:redis) { Resque.redis }
+      let(:redis) { Massive.redis }
 
       before { allow(step).to receive(:completed_all_jobs?).and_return(true) }
 

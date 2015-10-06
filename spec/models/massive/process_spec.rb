@@ -38,36 +38,12 @@ describe Massive::Process do
       allow(process).to receive(:steps).and_return(steps)
       allow(steps).to receive(:not_completed).and_return(steps)
       allow(steps).to receive(:not_started).and_return(steps)
+      allow(steps).to receive(:not_enqueued).and_return(steps)
       allow(steps).to receive(:first).and_return(step)
     end
 
-    context "when the step is enqueued" do
-      before { allow(step).to receive(:enqueued?).and_return(true) }
-
-      its(:next_step) { is_expected.to be_nil }
-    end
-
-    context "when the step is not enqueued" do
-      before { allow(step).to receive(:enqueued?).and_return(false) }
-
-      its(:next_step) { is_expected.to eq step }
-    end
-  end
-
-  describe ".find_step" do
-    let!(:step) { process.steps.create }
-
-    it "returns the step with id within the process" do
-      expect(Massive::Process.find_step(process.id, step.id)).to eq(step)
-    end
-  end
-
-  describe ".find_job" do
-    let!(:step) { process.steps.create }
-    let!(:job)  { step.jobs.create }
-
-    it "returns the job with id within the step of the process" do
-      expect(Massive::Process.find_job(process.id, step.id, job.id)).to eq(job)
+    it "returns the first step that is not completed, not started and not enqueued" do
+      expect(process.next_step).to eq(step)
     end
   end
 

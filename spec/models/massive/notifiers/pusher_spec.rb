@@ -11,7 +11,7 @@ describe Massive::Notifiers::Pusher do
   it { is_expected.to be_a(Massive::Notifiers::Base) }
 
   describe "#notify(message, data)" do
-    let(:redis) { Resque.redis }
+    let(:redis) { Massive.redis }
 
     let(:message) { :some_message }
     let(:data)    { { some: 'data' } }

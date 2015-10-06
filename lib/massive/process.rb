@@ -7,21 +7,12 @@ module Massive
 
     has_many :steps, class_name: 'Massive::Step', dependent: :destroy
 
-    def self.find_step(process_id, step_id)
-      find(process_id).steps.find(step_id)
-    end
-
-    def self.find_job(process_id, step_id, job_id)
-      find_step(process_id, step_id).jobs.find(job_id)
-    end
-
     def enqueue_next
       next_step.try(:enqueue)
     end
 
     def next_step
-      step = steps.not_completed.not_started.first
-      step.try(:enqueued?) ? nil : step
+      steps.not_completed.not_started.not_enqueued.first
     end
 
     def processed_percentage

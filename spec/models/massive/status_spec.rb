@@ -1,5 +1,17 @@
+require "spec_helper"
+
 shared_examples_for Massive::Status do
   include_context "frozen time"
+
+  context "when it has not been enqueued" do
+    it { is_expected.to_not be_enqueued }
+  end
+
+  context "when it has been enqueued" do
+    before { model.enqueued_at = 1.minute.ago }
+
+    it { is_expected.to be_enqueued }
+  end
 
   context "when it has not been started" do
     it { is_expected.to_not be_started }
@@ -72,21 +84,6 @@ shared_examples_for Massive::Status do
     it "zeroes the number of retries, persisting it" do
       model.start!
       expect(model.reload.retries).to be_zero
-    end
-  end
-
-  describe "#enqueued?" do
-    context "when model is enqueued" do
-      before do
-        allow(model).to receive(:reload).and_return(model)
-        model.enqueue
-      end
-
-      its(:enqueued?) { is_expected.to be_truthy }
-    end
-
-    context "when model is not enqueued" do
-      its(:enqueued?) { is_expected.to be_falsy }
     end
   end
 end

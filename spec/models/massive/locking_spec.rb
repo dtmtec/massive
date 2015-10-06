@@ -1,7 +1,7 @@
 require "spec_helper"
 
 shared_examples_for Massive::Locking do
-  let(:redis) { Resque.redis }
+  let(:redis) { Massive.redis }
   let(:key)   { :some_key }
 
   context "when there is a lock for the given key" do

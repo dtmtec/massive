@@ -33,8 +33,10 @@ RSpec.configure do |config|
   # config.order = 'random'
 
   config.before do
-    # DatabaseCleaner.orm = :mongoid
     DatabaseCleaner.clean_with('truncation')
+
+    ActiveJob::Base.logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('tmp/test.log'))
+    ActiveJob::Base.queue_adapter = :test
   end
 
   config.before { Massive.redis.flushdb }

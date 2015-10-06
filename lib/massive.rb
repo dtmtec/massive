@@ -17,6 +17,8 @@ module Massive
   autoload :FileStep,          'massive/file_step'
   autoload :FileJob,           'massive/file_job'
 
+  autoload :Worker,            'massive/worker'
+
   autoload :Notifications,     'massive/notifications'
   autoload :Notifiers,         'massive/notifiers'
 
@@ -31,7 +33,11 @@ module Massive
   class Cancelled < StandardError; end
 
   def self.redis
-    @redis ||= Resque.redis
+    @redis ||= Redis::Namespace.new(ENV['REDIS_NAMESPACE'].presence || :massive, redis: Redis.new)
+  end
+
+  def self.redis=(client)
+    @redis = client
   end
 
   def self.split_jobs
@@ -60,7 +66,9 @@ module Massive
   }
 end
 
-require "resque"
+require "redis"
+require "redis-namespace"
+require "active_job"
 require "mongoid"
 require "active_model_serializers"
 require "file_processor"

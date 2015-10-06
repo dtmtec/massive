@@ -6,7 +6,7 @@
 [1]: https://travis-ci.org/dtmtec/massive.png
 [2]: http://travis-ci.org/dtmtec/massive
 
-Massive gives you a basic infrastructure to parallelize processing of large files and/or data using Resque, Redis and MongoDB.
+Massive gives you a basic infrastructure to parallelize processing of large files and/or data using ActiveJob, Redis and MongoDB.
 
 ## Installation
 
@@ -74,7 +74,7 @@ Now we just create a process, and add the `CacheFriendsStep` to it, then enqueue
   process.enqueue_next
 ```
 
-Now the `CacheFriendsStep` is enqueued in the Resque queue. When it is run by a Resque worker it will split the processing into a number of jobs based on the step `limit_ratio`. This  `limit_ratio` could be defined like this:
+Now the `CacheFriendsStep` is enqueued in a ActiveJob queue. When it is run by a worker it will split the processing into a number of jobs based on the step `limit_ratio`. This  `limit_ratio` could be defined like this:
 
 ```ruby
   class CacheFriendsStep < Massive::Step
@@ -95,7 +95,7 @@ The default limit ratio is defined like this: `3000 => 1000, 0 => 100`. When its
 
 For the above example, it would create `100000 / 1000 == 100` jobs, where the first one would have an offset of 0, and a limit of 1000, the next one an offset of 1000 and a limit of 1000, and so on.
 
-With 100 jobs in a Resque queue you may want to start more than one worker so that it can process this queue more quickly.
+With 100 jobs in a ActiveJob queue you may want to start more than one worker so that it can process this queue more quickly.
 
 Now you just need to wait until all jobs have been completed, by polling the step once in a while:
 

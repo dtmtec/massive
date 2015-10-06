@@ -21,10 +21,6 @@ module Massive
 
     after_create :enqueue
 
-    def self.perform(process_id, step_id, job_id)
-      Massive::Process.find_job(process_id, step_id, job_id).work
-    end
-
     def self.queue
       if split_jobs
         :"#{queue_prefix}_#{Kernel.rand(split_jobs) + 1}"
@@ -49,7 +45,8 @@ module Massive
     end
 
     def enqueue
-      Resque.enqueue(self.class, process.id.to_s, step.id.to_s, id.to_s)
+      update_attributes(enqueued_at: Time.now)
+      Massive::Worker.set(queue: self.class.queue).perform_later(step.id.to_s, id.to_s)
     end
 
     def work
@@ -126,10 +123,6 @@ module Massive
 
     def increment_processed
       inc(processed: 1)
-    end
-
-    def args_for_resque
-      [process.id.to_s, step.id.to_s, id.to_s]
     end
   end
 end

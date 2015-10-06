@@ -10,17 +10,6 @@ describe Massive::Job do
 
   before { allow(job).to receive(:process).and_return(process) }
 
-  describe ".perform" do
-    before do
-      allow(Massive::Process).to receive(:find_job).with(process.id, step.id, job.id).and_return(job)
-    end
-
-    it "finds the job and calls work on it" do
-      expect(job).to receive(:work)
-      Massive::Job.perform(process.id, step.id, job.id)
-    end
-  end
-
   describe ".queue" do
     after { Massive::Job.queue_prefix(:massive_job) }
 
@@ -76,19 +65,21 @@ describe Massive::Job do
   end
 
   describe "#enqueue" do
-    it "enqueues itself, passing ids as strings" do
-      expect(Resque).to receive(:enqueue).with(job.class, process.id.to_s, step.id.to_s, job.id.to_s)
+    let(:configured_job) { double(ActiveJob::ConfiguredJob) }
+
+    before do
+      job.save # need to save job so that it can be loaded by Massive::Worker
+    end
+
+    it "enqueues a worker, passing both step id and its job id as strings, and setting the queue based on class queue" do
+      expect(Massive::Worker).to receive(:set).with(queue: job.class.queue).and_return(configured_job)
+      expect(configured_job).to receive(:perform_later).with(job.step.id.to_s, job.id.to_s)
       job.enqueue
     end
 
-    context "when a subclass redefines calculate_total_count" do
-      subject(:job) { CustomJob.new }
-      before { step.jobs << job }
-
-      it "enqueues itself, passing ids as strings" do
-        expect(Resque).to receive(:enqueue).with(job.class, process.id.to_s, step.id.to_s, job.id.to_s)
-        job.enqueue
-      end
+    it "marks the job as enqueued" do
+      job.enqueue
+      expect(job.reload.enqueued_at).to_not be_nil
     end
   end
 

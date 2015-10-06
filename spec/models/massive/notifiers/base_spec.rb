@@ -7,7 +7,7 @@ describe Massive::Notifiers::Base do
   it_should_behave_like Massive::Locking
 
   describe "#notify(message, data)" do
-    let(:redis) { Resque.redis }
+    let(:redis) { Massive.redis }
 
     let(:message) { :some_message }
     let(:data)    { { some: 'data' } }

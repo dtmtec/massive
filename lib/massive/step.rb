@@ -1,5 +1,5 @@
 module Massive
-  class Step
+  class Step < ActiveJob::Base
     include Mongoid::Document
     include Mongoid::Timestamps
 
@@ -19,10 +19,6 @@ module Massive
 
     define_model_callbacks :work
     define_model_callbacks :complete
-
-    def self.perform(process_id, step_id)
-      Massive::Process.find_step(process_id, step_id).work
-    end
 
     def self.queue
       :massive_step
@@ -53,7 +49,8 @@ module Massive
     job_class 'Massive::Job'
 
     def enqueue
-      Resque.enqueue(self.class, process.id.to_s, id.to_s)
+      update_attributes(enqueued_at: Time.now)
+      Massive::Worker.set(queue: self.class.queue).perform_later(id.to_s)
       notify(:enqueued)
     end
 
@@ -135,10 +132,6 @@ module Massive
 
     def attributes_to_reset
       super.merge(total_count: total_count || calculate_total_count)
-    end
-
-    def args_for_resque
-      [process.id.to_s, id.to_s]
     end
   end
 end

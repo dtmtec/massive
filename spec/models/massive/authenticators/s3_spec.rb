@@ -4,10 +4,18 @@ describe Massive::Authenticators::S3 do
   let(:filename) { 'some/path/my-filename.png' }
   subject(:authenticator) { described_class.new(filename) }
 
-  after do
+  let(:now) { Time.now }
+
+  before { allow(Time).to receive(:now).and_return(now) }
+
+  before do
+    # resetting storage config to the default one
     Massive.storage_config = {
+      directory: 'massive',
+      provider: Massive::Authenticators::S3,
       key: nil,
-      secret: nil
+      secret: nil,
+      expiration: 1 * 60 * 60
     }
   end
 
@@ -21,8 +29,9 @@ describe Massive::Authenticators::S3 do
     before do
       Massive.storage_config[:key] = 'some-key'
       Massive.storage_config[:secret] = 'some-secret'
-      allow(Time).to receive(:now).and_return(Time.parse("2014-05-15T13:25:45Z"))
     end
+
+    let!(:now) { Time.parse("2014-05-15T13:25:45Z") }
 
     def parsed_query(url)
       CGI.parse(URI.parse(url).query || '').with_indifferent_access
@@ -41,8 +50,6 @@ describe Massive::Authenticators::S3 do
     end
 
     it "returns a url with the expiration as a query string parameter using a timestamped format" do
-      now = Time.now.tap { |now| allow(Time).to receive(:now).and_return(now) }
-
       expect(parsed_query(authenticator.url)[:Expires].first.to_i).to eq(now.to_i + Massive.storage_config[:expiration])
     end
 
@@ -55,9 +62,7 @@ describe Massive::Authenticators::S3 do
     end
 
     context "when changing the expiration" do
-      before do
-        allow(Time).to receive(:now).and_return(Time.parse("2009-08-01T20:03:27Z"))
-      end
+      let!(:now) { Time.parse("2009-08-01T20:03:27Z") }
 
       it "returns a url with the Signature properly signing based on the current time" do
         expect(parsed_query(authenticator.url)[:Signature].first).to eq("ehM0n71BUPduV9WwWE73PIMmQYM=")
@@ -90,8 +95,6 @@ describe Massive::Authenticators::S3 do
       end
 
       it "returns a url with the expiration as a query string parameter using a timestamped format" do
-        now = Time.now.tap { |now| allow(Time).to receive(:now).and_return(now) }
-
         expect(parsed_query(authenticator.url)[:Expires].first.to_i).to eq(now.to_i + Massive.storage_config[:expiration])
       end
 
@@ -112,7 +115,7 @@ describe Massive::Authenticators::S3 do
       end
 
       it "returns a url with the Signature based the configured directory" do
-        expect(parsed_query(authenticator.url)[:Signature].first).to eq("fQCrfdk1FhSRZnecyZ2+Jye2HUY=")
+        expect(parsed_query(authenticator.url)[:Signature].first).to eq("4yc5dTM3pnCqmxA6YWcF7y1WjJQ=")
       end
     end
   end
