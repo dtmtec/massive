@@ -6,7 +6,7 @@ module Massive
       end
 
       def url
-        ::File.join(Massive.storage_config[:directory], @filename)
+        ::File.join(Massive.storage_config[:directory], @filename) if @filename
       end
     end
   end

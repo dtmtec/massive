@@ -18,4 +18,12 @@ describe Massive::Authenticators::Filesystem do
   it "properly build url by joining the directory and the given filename" do
     expect(authenticator.url).to eq(::File.join(Massive.storage_config[:directory], filename))
   end
+
+  context "when the filename is not defined" do
+    let(:filename) { nil }
+
+    it "returns nil" do
+      expect(authenticator.url).to be_nil
+    end
+  end
 end
