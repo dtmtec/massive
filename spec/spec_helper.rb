@@ -17,7 +17,8 @@ end
 
 root = File.expand_path('../..', __FILE__)
 
-logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new('tmp/test.log'))
+Dir.mkdir("#{root}/tmp") unless File.exists?("#{root}/tmp")
+logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new("#{root}/tmp/test.log"))
 Mongo::Logger.logger = logger
 ActiveJob::Base.logger = logger
 
