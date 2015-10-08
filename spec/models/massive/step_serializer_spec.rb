@@ -37,4 +37,16 @@ describe Massive::StepSerializer do
       expect(serialized[field]).to eq(step.send(field))
     end
   end
+
+  it "does not serializes file" do
+    expect(serialized[:file]).to be_nil
+  end
+
+  context "when serializing a file step" do
+    let(:step) { Massive::FileStep.new(process: Massive::FileProcess.new) }
+
+    it "serializes the file" do
+      expect(serialized[:file]).to be_present
+    end
+  end
 end

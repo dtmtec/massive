@@ -5,8 +5,14 @@ module Massive
                :processed, :processed_percentage, :processing_time, :elapsed_time,
                :notifier_id
 
+    has_one :file
+
     def id
       object.id.to_s
+    end
+
+    def include_file?
+      object.respond_to?(:file)
     end
   end
 end
