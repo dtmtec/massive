@@ -5,7 +5,7 @@ module Massive
 
     field :cancelled_at, type: Time
 
-    has_many :steps, class_name: 'Massive::Step', dependent: :destroy
+    has_many :steps, class_name: 'Massive::Step', dependent: :destroy, order: { created_at: :asc }
 
     def enqueue_next
       next_step.try(:enqueue)
