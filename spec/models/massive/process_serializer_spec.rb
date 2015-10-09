@@ -36,6 +36,54 @@ describe Massive::ProcessSerializer do
     end
   end
 
+  context "when it is failed" do
+    before { allow(process).to receive(:failed?).and_return(true) }
+
+    it "serializes failed" do
+      expect(serialized[:failed]).to be_truthy
+    end
+  end
+
+  context "when it is not failed" do
+    before { allow(process).to receive(:failed?).and_return(false) }
+
+    it "serializes failed" do
+      expect(serialized[:failed]).to be_falsy
+    end
+  end
+
+  context "when it is cancelled" do
+    before { allow(process).to receive(:cancelled?).and_return(true) }
+
+    it "serializes cancelled" do
+      expect(serialized[:cancelled]).to be_truthy
+    end
+  end
+
+  context "when it is not cancelled" do
+    before { allow(process).to receive(:cancelled?).and_return(false) }
+
+    it "serializes cancelled" do
+      expect(serialized[:cancelled]).to be_falsy
+    end
+  end
+
+  context "when it is in_progress" do
+    before { allow(process).to receive(:in_progress?).and_return(true) }
+
+    it "serializes in_progress" do
+      expect(serialized[:in_progress]).to be_truthy
+    end
+  end
+
+  context "when it is not in_progress" do
+    before { allow(process).to receive(:in_progress?).and_return(false) }
+
+    it "serializes in_progress" do
+      expect(serialized[:in_progress]).to be_falsy
+    end
+  end
+
   context "when it does not respond to file" do
     it "does not serializes file" do
       expect(serialized[:file]).to be_blank

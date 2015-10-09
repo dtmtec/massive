@@ -1,7 +1,8 @@
 module Massive
   class ProcessSerializer < ActiveModel::Serializer
     attributes :id, :created_at, :updated_at, :processed_percentage
-    attribute :completed?, key: :completed
+    attributes completed?: :completed, failed?: :failed
+    attributes cancelled?: :cancelled, in_progress?: :in_progress
 
     has_one :file
     has_many :steps

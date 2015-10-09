@@ -180,6 +180,44 @@ describe Massive::Process do
     end
   end
 
+  describe "#in_progress?" do
+    let(:cancelled) { false }
+    let(:failed)    { false }
+    let(:completed) { false }
+
+    before do
+      allow(process).to receive(:cancelled?).and_return(cancelled)
+      allow(process).to receive(:failed?).and_return(failed)
+      allow(process).to receive(:completed?).and_return(completed)
+    end
+
+    context "when it is not cancelled" do
+      context "and it is not failed" do
+        context "and not completed" do
+          it { is_expected.to be_in_progress }
+        end
+
+        context "but it is completed" do
+          let(:completed) { true }
+
+          it { is_expected.to_not be_in_progress }
+        end
+      end
+
+      context "but it is failed" do
+        let(:failed) { true }
+
+        it { is_expected.to_not be_in_progress }
+      end
+    end
+
+    context "but it is cancelled" do
+      let(:cancelled) { true }
+
+      it { is_expected.to_not be_in_progress }
+    end
+  end
+
   describe "#active_model_serializer" do
     its(:active_model_serializer) { is_expected.to eq Massive::ProcessSerializer }
 

@@ -31,6 +31,10 @@ module Massive
       cancelled_at? || redis.exists(cancelled_key)
     end
 
+    def in_progress?
+      !cancelled? && !failed? && !completed?
+    end
+
     def cancel
       self.cancelled_at = Time.now
       redis.setex(cancelled_key, 1.day, true)
