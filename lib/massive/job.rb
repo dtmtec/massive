@@ -59,8 +59,12 @@ module Massive
               retrying do
                 cancelling do
                   process_each(item, index)
-                  increment_processed
-                  notify(:progress)
+
+                  begin
+                    increment_processed
+                    notify(:progress)
+                  rescue StandardError
+                  end
                 end
               end
             end

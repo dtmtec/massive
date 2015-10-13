@@ -128,6 +128,8 @@ describe Massive::Job do
     context "when it process one item" do
       include_context "job processing"
 
+      before { allow(job).to receive(:finish!) }
+
       it "increments the number of processed items by one" do
         job.work
         expect(job.reload.processed).to eq(1)
@@ -139,10 +141,11 @@ describe Massive::Job do
       end
     end
 
-    context "when it process multiple itens" do
+    context "when it process multiple items" do
       include_context "job processing"
 
       before do
+        allow(job).to receive(:finish!)
         allow(job).to receive(:each_item)
           .and_yield(item, index)
           .and_yield(item, index + 1)
@@ -163,7 +166,6 @@ describe Massive::Job do
 
       it "sends a :progress notification" do
         expect(step).to receive(:notify).with(:progress).exactly(3).times
-        expect(step).to receive(:notify).with(:complete).once
         job.work
       end
     end
@@ -315,6 +317,62 @@ describe Massive::Job do
             expect { job.work }.to raise_error(error)
             expect(job.reload.retries).to eq(maximum_retries)
           end
+        end
+      end
+
+      context "while incrementing processed" do
+        include_context "job processing"
+
+        before { allow(job).to receive(:increment_processed).and_raise(error) }
+
+        it "does not retry" do
+          expect(Kernel).to_not receive(:sleep)
+          job.work
+          expect(job.reload.retries).to be_zero
+        end
+
+        it "does not raise the exception" do
+          expect { job.work }.to_not raise_error
+        end
+
+        it "does not set the step as failed" do
+          job.work
+
+          expect(step.reload).to_not be_failed
+        end
+
+        it "does not send a :failed notification" do
+          expect(step).to_not receive(:notify).with(:failed)
+
+          job.work
+        end
+      end
+
+      context "while notifying processed" do
+        include_context "job processing"
+
+        before { allow(job).to receive(:notify).with(:progress).and_raise(error) }
+
+        it "does not retries" do
+          expect(Kernel).to_not receive(:sleep)
+          job.work
+          expect(job.reload.retries).to be_zero
+        end
+
+        it "does not raise the exception" do
+          expect { job.work }.to_not raise_error
+        end
+
+        it "does not set the step as failed" do
+          job.work
+
+          expect(step.reload).to_not be_failed
+        end
+
+        it "does not send a :failed notification" do
+          expect(step).to_not receive(:notify).with(:failed)
+
+          job.work
         end
       end
 
