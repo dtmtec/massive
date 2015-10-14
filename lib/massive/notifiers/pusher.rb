@@ -7,6 +7,7 @@ module Massive
         data = block.call if block_given?
 
         client.trigger(id, message, data)
+      rescue RuntimeError
       end
 
       def client

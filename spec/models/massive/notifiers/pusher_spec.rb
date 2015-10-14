@@ -28,6 +28,16 @@ describe Massive::Notifiers::Pusher do
           notifier.notify(message) { data }
         end
       end
+
+      context "when an a runtime error happens while sending the notification" do
+        before do
+          allow(client).to receive(:trigger).and_raise(RuntimeError)
+        end
+
+        it "does not raise error" do
+          expect { notifier.notify(message, data) }.to_not raise_error
+        end
+      end
     end
 
     context "when a notification for this message is locked" do
