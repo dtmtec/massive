@@ -10,7 +10,7 @@ PATH
     massive (0.5.0)
       active_model_serializers (~> 0.8.0)
       activejob
-      file_processor (>= 0.3.0)
+      file_processor (>= 0.3.1)
       mongoid (>= 4.0.0)
       redis
       redis-namespace
@@ -32,14 +32,14 @@ GEM
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
-    bson (3.2.4)
+    bson (3.2.6)
     builder (3.2.2)
     byebug (6.0.2)
     coderay (1.1.0)
     diff-lcs (1.2.5)
     docile (1.1.5)
     ffi (1.9.10)
-    file_processor (0.3.0)
+    file_processor (0.3.1)
     formatador (0.2.5)
     globalid (0.3.6)
       activesupport (>= 4.1.0)
