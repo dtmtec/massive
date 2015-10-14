@@ -3,7 +3,7 @@ require "spec_helper"
 describe Massive::FileSerializer do
   let(:headers) { ['name', 'description', 'price'] }
   let(:sample_data) { [['Some name', 'Some desc', 1234], ['Other name', 'Other desc', 5678]] }
-  let(:file) { Massive::File.new(url: 'http://some.url.com', encoding: 'utf8', col_sep: ';', total_count: 1234, use_headers: true, headers: headers, sample_data: sample_data) }
+  let(:file) { Massive::File.new(url: 'http://some.url.com', encoding: 'utf8', col_sep: ';', total_count: 1234, use_headers: true, headers: headers, sample_data: sample_data, file_size: 12345) }
   subject(:serialized) { described_class.new(file).as_json(root: false) }
 
   it "serializes file id as string" do
@@ -36,5 +36,9 @@ describe Massive::FileSerializer do
 
   it "serializes sample_data" do
     expect(serialized[:sample_data]).to eq(file.sample_data)
+  end
+
+  it "serializes file_size" do
+    expect(serialized[:file_size]).to eq(file.file_size)
   end
 end

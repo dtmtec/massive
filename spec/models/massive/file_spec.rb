@@ -78,6 +78,7 @@ describe Massive::File do
     let(:detected_col_sep)  { ';' }
     let(:total_count)       { 1000 }
     let(:headers)           { ['some header', 'other header' ] }
+    let(:file_size)         { rand(10000) }
 
     let(:processor) do
       double(FileProcessor::CSV, {
@@ -85,7 +86,8 @@ describe Massive::File do
         col_sep:           detected_col_sep,
         total_count:       total_count,
         shift:             true,
-        headers:           headers
+        headers:           headers,
+        stat:              double('Stat', size: file_size)
       })
     end
 
@@ -126,6 +128,11 @@ describe Massive::File do
       expect(file.reload.sample_data).to eq([row.fields, row.fields, row.fields])
     end
 
+    it "stores the file size, and persists it" do
+      file.gather_info!
+      expect(file.reload.file_size).to eq(file_size)
+    end
+
     context "when file has no headers" do
       subject(:file) { process.file = Massive::File.new(url: url, encoding: encoding, col_sep: col_sep, use_headers: false) }
 
@@ -142,7 +149,8 @@ describe Massive::File do
           detected_encoding: encoding,
           col_sep:           col_sep,
           total_count:       3,
-          shift:             true
+          shift:             true,
+          stat:              double('Stat', size: file_size)
         })
       end
 

@@ -12,6 +12,7 @@ module Massive
     field :col_sep,     type: String
     field :total_count, type: Integer
     field :use_headers, type: Boolean, default: true
+    field :file_size,   type: Integer
 
     field :headers,     type: Array, default: -> { [] }
     field :sample_data, type: Array, default: -> { [] }
@@ -27,6 +28,7 @@ module Massive
       self.col_sep     = processor.col_sep
       self.total_count = processor.total_count
       self.headers     = processor.shift && processor.headers if use_headers?
+      self.file_size   = processor.stat.size
 
       processor.process_range(limit: 3) do |row|
         self.sample_data << (use_headers? ? row.fields : row)
