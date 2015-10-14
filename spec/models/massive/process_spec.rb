@@ -133,11 +133,11 @@ describe Massive::Process do
 
     before { process.save }
 
-    context "when the steps not failed" do
+    context "when there are no failed steps" do
       its(:failed?) { is_expected.to be_falsy }
     end
 
-    context "when any step failed" do
+    context "when there is at least one failed step" do
       before { step_2.update_attributes(failed_at: Time.now) }
 
       its(:failed?) { is_expected.to be_truthy }

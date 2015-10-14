@@ -20,11 +20,11 @@ module Massive
     end
 
     def completed?
-      steps.not_completed.none?
+      steps.all?(&:completed?)
     end
 
     def failed?
-      steps.any? { |step| step.failed_at? }
+      steps.any?(&:failed?)
     end
 
     def cancelled?
