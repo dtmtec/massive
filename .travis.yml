@@ -4,4 +4,6 @@ rvm:
 services:
   - mongodb
   - redis-server
+sudo: false
+cache: bundler
 bundler_args: --without development
